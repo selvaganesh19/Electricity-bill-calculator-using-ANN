@@ -11,13 +11,6 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="description" content="Calculate your monthly electricity consumption with TNEB tariff rates." />
-<meta name="theme-color" content="#ffffff" />
-<meta name="msapplication-TileColor" content="#ffffff" />
-<meta name="msapplication-TileImage" content="./icon/ms-icon-144x144.png" />
-<meta name="mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
 <link rel="apple-touch-icon" sizes="57x57" href="./icon/apple-icon-57x57.png" />
 <link rel="apple-touch-icon" sizes="60x60" href="./icon/apple-icon-60x60.png" />
@@ -30,19 +23,17 @@
 <link rel="apple-touch-icon" sizes="180x180" href="./icon/apple-icon-180x180.png" />
 
 <link rel="icon" type="image/png" sizes="192x192" href="./icon/android-icon-192x192.png" />
-<link rel="icon" type="image/png" sizes="32x32" href="./icon/favicon-32x32.png" />
 <link rel="icon" type="image/png" sizes="96x96" href="./icon/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="./icon/favicon-32x32.png" />
 <link rel="icon" type="image/png" sizes="16x16" href="./icon/favicon-16x16.png" />
 
-  <!-- avoid favicon 404 -->
-  <link rel="icon" href="data:," />
+<!-- keep only ONE manifest -->
+<link rel="manifest" href="./icon/manifest.json" />
 
-  <!-- PWA manifest -->
-  <link rel="manifest" href="./manifest.json" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <style>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --primary: #7c3aed; --primary-light: #a855f7; --blue: #2563eb;
