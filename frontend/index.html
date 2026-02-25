@@ -478,6 +478,60 @@ const TIPS={
 
 let S={house:"2bhk",season:"",rate:5,limit:0,apps:[],nid:1};
 
+let aiOfflineNotified = false;
+
+function addAIMsg(text, role = "bot"){
+  const box = document.getElementById("aiMsgs");
+  if (!box) return;
+  const d = document.createElement("div");
+  d.className = `ai-b ${role}`;
+  d.textContent = text;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+function setAIBackendStatus(isOnline){
+  const input = document.getElementById("aiInput");
+  const send = document.getElementById("aiSendBtn");
+  if (input) input.disabled = !isOnline;
+  if (send) send.disabled = !isOnline;
+
+  if (!isOnline && !aiOfflineNotified) {
+    addAIMsg("Backend is disconnected. Please connect backend.");
+    aiOfflineNotified = true;
+  }
+  if (isOnline) aiOfflineNotified = false;
+}
+
+function showBackendDisconnectedUI(){
+  const sum = document.getElementById("sumC");
+  const alt = document.getElementById("altC");
+
+  if (sum) {
+    sum.innerHTML = `
+      <div class="cd cd-r">
+        <div class="empty" style="padding:30px;">
+          <div class="ei">🚨</div>
+          <div class="et">Backend Disconnected</div>
+          <div class="em">Connect backend to view Summary.</div>
+        </div>
+      </div>`;
+  }
+
+  if (alt) {
+    alt.innerHTML = `
+      <div class="cd cd-r">
+        <div class="empty" style="padding:30px;">
+          <div class="ei">🚨</div>
+          <div class="et">Backend Disconnected</div>
+          <div class="em">Connect backend to view Alerts.</div>
+        </div>
+      </div>`;
+  }
+
+  setAIBackendStatus(false);
+}
+
 // ============================================================
 // TNEB CALC
 // ============================================================
