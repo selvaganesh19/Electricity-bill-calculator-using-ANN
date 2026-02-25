@@ -394,402 +394,622 @@
   </footer>
 </div>
 <script>
-  // ============================================================
-  // DATA
-  // ============================================================
-  const SLABS=[
-    {mn:0,mx:100,r:0,l:"Free Tier (0-100)"},{mn:101,mx:200,r:2.25,l:"Slab 2 (101-200)"},
-    {mn:201,mx:400,r:4.5,l:"Slab 3 (201-400)"},{mn:401,mx:500,r:6,l:"Slab 4 (401-500)"},
-    {mn:501,mx:600,r:8,l:"Slab 5 (501-600)"},{mn:601,mx:800,r:9,l:"Slab 6 (601-800)"},
-    {mn:801,mx:1000,r:10,l:"Slab 7 (801-1000)"},{mn:1001,mx:1/0,r:11,l:"Slab 8 (1000+)"},
-  ];
-  const AP=[
-    {id:"fan",n:"Fan",e:"💨",t:[
-      {id:"ceiling_reg",n:"Ceiling Fan (Regular)",w:75},{id:"ceiling_bldc",n:"Ceiling Fan (BLDC)",w:30},
-      {id:"table",n:"Table Fan",w:50},{id:"exhaust",n:"Exhaust Fan",w:40},{id:"pedestal",n:"Pedestal Fan",w:55}]},
-    {id:"light",n:"Light Bulb",e:"💡",t:[
-      {id:"led7",n:"LED Bulb (7W)",w:7},{id:"led12",n:"LED Bulb (12W)",w:12},{id:"led15",n:"LED Bulb (15W)",w:15},
-      {id:"cfl15",n:"CFL (15W)",w:15},{id:"cfl23",n:"CFL (23W)",w:23},{id:"inc60",n:"Incandescent (60W)",w:60},
-      {id:"inc100",n:"Incandescent (100W)",w:100},{id:"tube36",n:"Tube Light (36W)",w:36},{id:"ledtube",n:"LED Tube (20W)",w:20}]},
-    {id:"tv",n:"Television",e:"📺",t:[
-      {id:"led32",n:'LED TV 32"',w:50},{id:"led43",n:'LED TV 43"',w:80},{id:"led55",n:'LED TV 55"',w:120},
-      {id:"led65",n:'LED TV 65"',w:150},{id:"oled55",n:'OLED TV 55"',w:100},{id:"crt",n:"CRT TV (Old)",w:150}]},
-    {id:"ac",n:"Air Conditioner",e:"❄️",t:[
-      {id:"s1t5",n:"Split 1T (5-Star)",w:900},{id:"s1t3",n:"Split 1T (3-Star)",w:1100},
-      {id:"s15t5",n:"Split 1.5T (5-Star)",w:1300},{id:"s15t3",n:"Split 1.5T (3-Star)",w:1600},
-      {id:"s2t5",n:"Split 2T (5-Star)",w:1800},{id:"w15t",n:"Window AC 1.5T",w:1800},
-      {id:"inv15",n:"Inverter AC 1.5T",w:1000}]},
-    {id:"fridge",n:"Refrigerator",e:"🧊",t:[
-      {id:"s190",n:"Single Door (190L)",w:80},{id:"d260",n:"Double Door (260L)",w:150},
-      {id:"d350",n:"Double Door (350L)",w:200},{id:"sbs",n:"Side by Side (600L)",w:300},
-      {id:"mini",n:"Mini Fridge (50L)",w:50},{id:"inv",n:"Inverter Fridge (260L)",w:100}]},
-    {id:"wash",n:"Washing Machine",e:"🧺",t:[
-      {id:"semi7",n:"Semi-Auto (7kg)",w:350},{id:"full7",n:"Fully Auto (7kg)",w:500},
-      {id:"front7",n:"Front Load (7kg)",w:400},{id:"top8",n:"Top Load (8kg)",w:550}]},
-    {id:"geyser",n:"Water Heater / Geyser",e:"🔥",t:[
-      {id:"inst3",n:"Instant (3L)",w:3000},{id:"stor15",n:"Storage (15L)",w:2000},
-      {id:"stor25",n:"Storage (25L)",w:2500},{id:"solar",n:"Solar Hybrid",w:1500}]},
-    {id:"iron",n:"Iron / Press",e:"👕",t:[
-      {id:"dry",n:"Dry Iron",w:750},{id:"steam",n:"Steam Iron",w:1200},{id:"cordless",n:"Cordless Iron",w:1000}]},
-    {id:"mixer",n:"Mixer / Grinder",e:"🍲",t:[
-      {id:"mx500",n:"Mixer Grinder (500W)",w:500},{id:"mx750",n:"Mixer Grinder (750W)",w:750},
-      {id:"wet",n:"Wet Grinder",w:150},{id:"juicer",n:"Juicer / Blender",w:300}]},
-    {id:"micro",n:"Microwave Oven",e:"🍞",t:[
-      {id:"solo20",n:"Solo (20L)",w:800},{id:"grill25",n:"Grill (25L)",w:1200},
-      {id:"conv28",n:"Convection (28L)",w:1500},{id:"otg25",n:"OTG (25L)",w:1500}]},
-    {id:"comp",n:"Computer / Laptop",e:"💻",t:[
-      {id:"laptop",n:"Laptop",w:50},{id:"desktop",n:"Desktop PC",w:200},
-      {id:"gaming",n:"Gaming PC",w:500},{id:"monitor",n:'Monitor 24"',w:30}]},
-    {id:"pump",n:"Water Motor / Pump",e:"💧",t:[
-      {id:"p05",n:"0.5 HP Motor",w:375},{id:"p1",n:"1 HP Motor",w:750},
-      {id:"p15",n:"1.5 HP Motor",w:1100},{id:"sub1",n:"Submersible 1 HP",w:750}]},
-    {id:"router",n:"WiFi Router",e:"📶",t:[
-      {id:"basic",n:"Basic Router",w:10},{id:"dual",n:"Dual Band",w:15},{id:"mesh",n:"Mesh System",w:20}]},
-    {id:"charger",n:"Phone Charger",e:"📱",t:[
-      {id:"n5",n:"Normal (5W)",w:5},{id:"f18",n:"Fast (18W)",w:18},{id:"sf65",n:"Super Fast (65W)",w:65}]},
-    {id:"cooler",n:"Air Cooler",e:"🌬️",t:[
-      {id:"pers",n:"Personal Cooler",w:100},{id:"desert",n:"Desert Cooler",w:200},{id:"tower",n:"Tower Cooler",w:150}]},
-    {id:"induction",n:"Induction Cooktop",e:"🍳",t:[
-      {id:"i1200",n:"Induction (1200W)",w:1200},{id:"i1800",n:"Induction (1800W)",w:1800},{id:"i2000",n:"Induction (2000W)",w:2000}]},
-    {id:"vacuum",n:"Vacuum Cleaner",e:"🧹",t:[
-      {id:"hand",n:"Handheld",w:200},{id:"can",n:"Canister",w:800},{id:"robot",n:"Robot Vacuum",w:50}]},
-  ];
+// ============================================================
+// DATA
+// ============================================================
+const SLABS=[
+  {mn:0,mx:100,r:0,l:"Free Tier (0-100)"},{mn:101,mx:200,r:2.25,l:"Slab 2 (101-200)"},
+  {mn:201,mx:400,r:4.5,l:"Slab 3 (201-400)"},{mn:401,mx:500,r:6,l:"Slab 4 (401-500)"},
+  {mn:501,mx:600,r:8,l:"Slab 5 (501-600)"},{mn:601,mx:800,r:9,l:"Slab 6 (601-800)"},
+  {mn:801,mx:1000,r:10,l:"Slab 7 (801-1000)"},{mn:1001,mx:1/0,r:11,l:"Slab 8 (1000+)"}
+];
+const AP=[
+  {id:"fan",n:"Fan",e:"💨",t:[
+    {id:"ceiling_reg",n:"Ceiling Fan (Regular)",w:75},{id:"ceiling_bldc",n:"Ceiling Fan (BLDC)",w:30},
+    {id:"table",n:"Table Fan",w:50},{id:"exhaust",n:"Exhaust Fan",w:40},{id:"pedestal",n:"Pedestal Fan",w:55}]},
+  {id:"light",n:"Light Bulb",e:"💡",t:[
+    {id:"led7",n:"LED Bulb (7W)",w:7},{id:"led12",n:"LED Bulb (12W)",w:12},{id:"led15",n:"LED Bulb (15W)",w:15},
+    {id:"cfl15",n:"CFL (15W)",w:15},{id:"cfl23",n:"CFL (23W)",w:23},{id:"inc60",n:"Incandescent (60W)",w:60},
+    {id:"inc100",n:"Incandescent (100W)",w:100},{id:"tube36",n:"Tube Light (36W)",w:36},{id:"ledtube",n:"LED Tube (20W)",w:20}]},
+  {id:"tv",n:"Television",e:"📺",t:[
+    {id:"led32",n:'LED TV 32"',w:50},{id:"led43",n:'LED TV 43"',w:80},{id:"led55",n:'LED TV 55"',w:120},
+    {id:"led65",n:'LED TV 65"',w:150},{id:"oled55",n:'OLED TV 55"',w:100},{id:"crt",n:"CRT TV (Old)",w:150}]},
+  {id:"ac",n:"Air Conditioner",e:"❄️",t:[
+    {id:"s1t5",n:"Split 1T (5-Star)",w:900},{id:"s1t3",n:"Split 1T (3-Star)",w:1100},
+    {id:"s15t5",n:"Split 1.5T (5-Star)",w:1300},{id:"s15t3",n:"Split 1.5T (3-Star)",w:1600},
+    {id:"s2t5",n:"Split 2T (5-Star)",w:1800},{id:"w15t",n:"Window AC 1.5T",w:1800},
+    {id:"inv15",n:"Inverter AC 1.5T",w:1000}]},
+  {id:"fridge",n:"Refrigerator",e:"🧊",t:[
+    {id:"s190",n:"Single Door (190L)",w:80},{id:"d260",n:"Double Door (260L)",w:150},
+    {id:"d350",n:"Double Door (350L)",w:200},{id:"sbs",n:"Side by Side (600L)",w:300},
+    {id:"mini",n:"Mini Fridge (50L)",w:50},{id:"inv",n:"Inverter Fridge (260L)",w:100}]},
+  {id:"wash",n:"Washing Machine",e:"🧺",t:[
+    {id:"semi7",n:"Semi-Auto (7kg)",w:350},{id:"full7",n:"Fully Auto (7kg)",w:500},
+    {id:"front7",n:"Front Load (7kg)",w:400},{id:"top8",n:"Top Load (8kg)",w:550}]},
+  {id:"geyser",n:"Water Heater / Geyser",e:"🔥",t:[
+    {id:"inst3",n:"Instant (3L)",w:3000},{id:"stor15",n:"Storage (15L)",w:2000},
+    {id:"stor25",n:"Storage (25L)",w:2500},{id:"solar",n:"Solar Hybrid",w:1500}]},
+  {id:"iron",n:"Iron / Press",e:"👕",t:[
+    {id:"dry",n:"Dry Iron",w:750},{id:"steam",n:"Steam Iron",w:1200},{id:"cordless",n:"Cordless Iron",w:1000}]},
+  {id:"mixer",n:"Mixer / Grinder",e:"🍲",t:[
+    {id:"mx500",n:"Mixer Grinder (500W)",w:500},{id:"mx750",n:"Mixer Grinder (750W)",w:750},
+    {id:"wet",n:"Wet Grinder",w:150},{id:"juicer",n:"Juicer / Blender",w:300}]},
+  {id:"micro",n:"Microwave Oven",e:"🍞",t:[
+    {id:"solo20",n:"Solo (20L)",w:800},{id:"grill25",n:"Grill (25L)",w:1200},
+    {id:"conv28",n:"Convection (28L)",w:1500},{id:"otg25",n:"OTG (25L)",w:1500}]},
+  {id:"comp",n:"Computer / Laptop",e:"💻",t:[
+    {id:"laptop",n:"Laptop",w:50},{id:"desktop",n:"Desktop PC",w:200},
+    {id:"gaming",n:"Gaming PC",w:500},{id:"monitor",n:'Monitor 24"',w:30}]},
+  {id:"pump",n:"Water Motor / Pump",e:"💧",t:[
+    {id:"p05",n:"0.5 HP Motor",w:375},{id:"p1",n:"1 HP Motor",w:750},
+    {id:"p15",n:"1.5 HP Motor",w:1100},{id:"sub1",n:"Submersible 1 HP",w:750}]},
+  {id:"router",n:"WiFi Router",e:"📶",t:[
+    {id:"basic",n:"Basic Router",w:10},{id:"dual",n:"Dual Band",w:15},{id:"mesh",n:"Mesh System",w:20}]},
+  {id:"charger",n:"Phone Charger",e:"📱",t:[
+    {id:"n5",n:"Normal (5W)",w:5},{id:"f18",n:"Fast (18W)",w:18},{id:"sf65",n:"Super Fast (65W)",w:65}]},
+  {id:"cooler",n:"Air Cooler",e:"🌬️",t:[
+    {id:"pers",n:"Personal Cooler",w:100},{id:"desert",n:"Desert Cooler",w:200},{id:"tower",n:"Tower Cooler",w:150}]},
+  {id:"induction",n:"Induction Cooktop",e:"🍳",t:[
+    {id:"i1200",n:"Induction (1200W)",w:1200},{id:"i1800",n:"Induction (1800W)",w:1800},{id:"i2000",n:"Induction (2000W)",w:2000}]},
+  {id:"vacuum",n:"Vacuum Cleaner",e:"🧹",t:[
+    {id:"hand",n:"Handheld",w:200},{id:"can",n:"Canister",w:800},{id:"robot",n:"Robot Vacuum",w:50}]},
+];
 
-  const HOUSES=[
-    {id:"1bhk",n:"1 BHK",d:"Small apartment",e:"🏠"},
-    {id:"2bhk",n:"2 BHK",d:"Medium apartment",e:"🏡"},
-    {id:"3bhk",n:"3 BHK",d:"Large apartment",e:"🏢"},
-    {id:"indep",n:"Independent",d:"Individual house",e:"🏠"},
-    {id:"villa",n:"Villa",d:"Large bungalow",e:"🏰"},
-    {id:"pg",n:"PG / Room",d:"Paying guest",e:"🛏️"},
-  ];
+const HOUSES=[
+  {id:"1bhk",n:"1 BHK",d:"Small apartment",e:"🏠"},
+  {id:"2bhk",n:"2 BHK",d:"Medium apartment",e:"🏡"},
+  {id:"3bhk",n:"3 BHK",d:"Large apartment",e:"🏢"},
+  {id:"indep",n:"Independent",d:"Individual house",e:"🏠"},
+  {id:"villa",n:"Villa",d:"Large bungalow",e:"🏰"},
+  {id:"pg",n:"PG / Room",d:"Paying guest",e:"🛏️"},
+];
 
-  const SEASONS=[
-    {id:"summer",n:"Summer (Apr-Jun)",m:1.3},{id:"monsoon",n:"Monsoon (Jul-Sep)",m:0.9},
-    {id:"winter",n:"Winter (Oct-Jan)",m:0.85},{id:"spring",n:"Spring (Feb-Mar)",m:1.0},
-  ];
+const SEASONS=[
+  {id:"summer",n:"Summer (Apr-Jun)",m:1.3},{id:"monsoon",n:"Monsoon (Jul-Sep)",m:0.9},
+  {id:"winter",n:"Winter (Oct-Jan)",m:0.85},{id:"spring",n:"Spring (Feb-Mar)",m:1.0},
+];
 
-  const TIPS={
-    cool:["Use BLDC fans - save 60% energy vs regular fans","Set AC to 24-26°C - each degree lower increases cost by 6%","Use timer for water heaters - save ₹500-800/month","Proper insulation reduces cooling costs by 30%","Clean AC filters monthly for 15% better efficiency","Use curtains/blinds to block direct sunlight"],
-    light:["LED bulbs use 80% less energy than incandescent","Smart power strips prevent phantom loads","Natural light during day saves ₹200-400/month","Energy-efficient appliances pay for themselves","Turn off lights when leaving rooms","Use motion sensors for corridors"],
-    kitchen:["Use pressure cooker - saves 70% cooking energy","Run fridge at 3-5°C, freezer at -18°C","Don't open fridge door frequently","Use microwave for reheating instead of stove"],
-    gen:["Switch off appliances at the wall when not in use","Use 5-star rated appliances for maximum savings","Schedule high-power tasks during off-peak hours","Regular maintenance extends appliance life and efficiency"],
-  };
+const TIPS={
+  cool:["Use BLDC fans - save 60% energy vs regular fans","Set AC to 24-26°C - each degree lower increases cost by 6%","Use timer for water heaters - save ₹500-800/month","Proper insulation reduces cooling costs by 30%","Clean AC filters monthly for 15% better efficiency","Use curtains/blinds to block direct sunlight"],
+  light:["LED bulbs use 80% less energy than incandescent","Smart power strips prevent phantom loads","Natural light during day saves ₹200-400/month","Energy-efficient appliances pay for themselves","Turn off lights when leaving rooms","Use motion sensors for corridors"],
+  kitchen:["Use pressure cooker - saves 70% cooking energy","Run fridge at 3-5°C, freezer at -18°C","Don't open fridge door frequently","Use microwave for reheating instead of stove"],
+  gen:["Switch off appliances at the wall when not in use","Use 5-star rated appliances for maximum savings","Schedule high-power tasks during off-peak hours","Regular maintenance extends appliance life and efficiency"],
+};
 
-  let S={house:"2bhk",season:"",rate:5,limit:0,apps:[],nid:1};
+let S={house:"2bhk",season:"",rate:5,limit:0,apps:[],nid:1};
 
-  // ============================================================
-  // TNEB CALC
-  // ============================================================
-  function tneb(u){
-    let rem=u,tot=0,bd=[];
-    for(const s of SLABS){
-      if(rem<=0)break;
-      const su=Math.min(rem,s.mx-s.mn+1);if(su<=0)continue;
-      let r=s.r;if(u<=100)r=0;
-      bd.push({slab:s.l,units:su,rate:r,amt:su*r});tot+=su*r;rem-=su;
-    }
-    let cs="Free Tier";
-    for(const s of SLABS){if(u>=s.mn&&u<=s.mx){cs=s.l;break;}}
-    return{tot,bd,cs};
+// ============================================================
+// TNEB CALC
+// ============================================================
+function tneb(u){
+  let rem=u,tot=0,bd=[];
+  for(const s of SLABS){
+    if(rem<=0)break;
+    const su=Math.min(rem,s.mx-s.mn+1);if(su<=0)continue;
+    let r=s.r;if(u<=100)r=0;
+    bd.push({slab:s.l,units:su,rate:r,amt:su*r});tot+=su*r;rem-=su;
   }
+  let cs="Free Tier";
+  for(const s of SLABS){if(u>=s.mn&&u<=s.mx){cs=s.l;break;}}
+  return{tot,bd,cs};
+}
 
-  // ============================================================
-  // AI PREDICTION FROM BACKEND
-  // ============================================================
-  async function predictFromAI(appliances) {
-    try {
-      if (!appliances || !Array.isArray(appliances) || appliances.length === 0) {
-        return null;
-      }
-      const payload = {
-        bhk: parseInt(S.house.match(/\d+/) || 2),
-        appliances: appliances.map(a => ({watt: a.w, quantity: a.q, hours: a.h}))
-      };
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      const response = await fetch('http://localhost:8000/predict', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload),
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error('AI prediction failed:', error.message);
+// ============================================================
+// AI PREDICTION FROM BACKEND
+// ============================================================
+async function predictFromAI(appliances) {
+  try {
+    if (!appliances || !Array.isArray(appliances) || appliances.length === 0) {
       return null;
     }
+    const payload = {
+      bhk: parseInt(S.house.match(/\d+/) || 2),
+      appliances: appliances.map(a => ({watt: a.w, quantity: a.q, hours: a.h}))
+    };
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch('http://localhost:8000/predict', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    if (!response.ok) throw new Error(`API error: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error('AI prediction failed:', error.message);
+    return null;
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init(){
+  const hg=document.getElementById('houseGrid');
+  hg.innerHTML=HOUSES.map(h=>`<button class="hb ${S.house===h.id?'on':''}" data-id="${h.id}" onclick="selH('${h.id}')"><div class="he">${h.e}</div><div class="hn">${h.n}</div><div class="hi">${h.d}</div></button>`).join('');
+  const sa=document.getElementById('sA');
+  sa.innerHTML='<option value="">Select appliance</option>'+AP.map(a=>`<option value="${a.id}">${a.e} ${a.n}</option>`).join('');
+  const ss=document.getElementById('sS');
+  ss.innerHTML='<option value="">Select season</option>'+SEASONS.map(s=>`<option value="${s.id}">${s.n}</option>`).join('');
+  calc();
+}
+
+function selH(id){
+  S.house=id;
+  document.querySelectorAll('.hb').forEach(b=>{b.classList.toggle('on',b.dataset.id===id);});
+}
+
+function go(name){
+  document.querySelectorAll('.tbtn').forEach(b=>{b.classList.remove('on');b.setAttribute('aria-selected','false');});
+  document.getElementById('t-'+name).classList.add('on');
+  document.getElementById('t-'+name).setAttribute('aria-selected','true');
+  document.querySelectorAll('.pan').forEach(p=>p.classList.remove('on'));
+  document.getElementById('p-'+name).classList.add('on');
+  if(name==='summary'||name==='alerts')calc();
+}
+
+function onAC(){
+  const aid=document.getElementById('sA').value;
+  const ts=document.getElementById('sT');
+  const ap=AP.find(a=>a.id===aid);
+  if(ap){ts.disabled=false;ts.innerHTML='<option value="">Select type</option>'+ap.t.map(t=>`<option value="${t.id}">${t.n} (${t.w}W)</option>`).join('');}
+  else{ts.disabled=true;ts.innerHTML='<option value="">Select type</option>';}
+  document.getElementById('bA').disabled=!aid;
+}
+
+function addA(){
+  const aid=document.getElementById('sA').value;
+  const tid=document.getElementById('sT').value;
+  if(!aid||!tid)return;
+  const ap=AP.find(a=>a.id===aid);const tp=ap.t.find(t=>t.id===tid);
+  if(!ap||!tp)return;
+  const q=Math.max(1,parseInt(document.getElementById('iQ').value)||1);
+  const h=Math.max(0.5,parseFloat(document.getElementById('iH').value)||8);
+  S.apps.push({id:S.nid++,aid:ap.id,an:ap.n,tid:tp.id,tn:tp.n,w:tp.w,q,h,e:ap.e});
+  document.getElementById('sA').value='';
+  document.getElementById('sT').innerHTML='<option value="">Select type</option>';
+  document.getElementById('sT').disabled=true;
+  document.getElementById('iQ').value='1';document.getElementById('iH').value='8';
+  document.getElementById('bA').disabled=true;
+  render();calc();
+}
+
+function remA(id){S.apps=S.apps.filter(a=>a.id!==id);render();calc();}
+
+function render(){
+  const sec=document.getElementById('alSec');
+  const emp=document.getElementById('alEmpty');
+  if(!S.apps.length){sec.style.display='none';emp.style.display='block';return;}
+  sec.style.display='block';emp.style.display='none';
+  const dWh=S.apps.reduce((s,a)=>s+a.w*a.q*a.h,0);
+  const tQ=S.apps.reduce((s,a)=>s+a.q,0);
+  const mKwh=(dWh/1000)*30;
+  const mu=Math.round(mKwh);
+  const tb=tneb(mu);
+  document.getElementById('alSum').textContent=S.apps.length+' appliance(s) – Total: '+(dWh/1000).toFixed(2)+' kWh/day';
+  document.getElementById('alCnt').textContent=tQ+' items';
+  document.getElementById('alDaily').textContent=(dWh/1000).toFixed(2)+' kWh';
+  document.getElementById('alMonthly').textContent=mKwh.toFixed(1)+' kWh';
+  document.getElementById('alBill').textContent='₹'+tb.tot.toFixed(2);
+  const ls=document.getElementById('alList');
+  ls.innerHTML=S.apps.map(a=>{
+    const mk=((a.w*a.q*a.h)/1000)*30;
+    return`<div class="ai"><div class="aicon">${a.e}</div><div class="ainfo"><div class="nm">${a.an}</div><div class="tp">${a.tn}</div></div><div class="ast hm"><div class="v">${a.w}W</div><div class="l">Watt</div></div><div class="ast"><div class="v">x${a.q}</div><div class="l">Qty</div></div><div class="ast"><div class="v">${a.h}h</div><div class="l">Day</div></div><div class="ast gv"><div class="v">${mk.toFixed(1)}</div><div class="l">kWh/mo</div></div><button class="btn-r" onclick="remA(${a.id})"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button></div>`;
+  }).join('');
+}
+
+function onSC(){
+  S.season=document.getElementById('sS').value;
+  const inf=document.getElementById('sInfo');
+  if(S.season){
+    const s=SEASONS.find(x=>x.id===S.season);
+    const ds={summer:'Higher usage due to AC and cooling needs',monsoon:'Lower cooling needs, moderate usage',winter:'Lowest cooling needs, water heater usage rises',spring:'Average consumption period'}[S.season];
+    inf.style.display='block';inf.innerHTML=`<p>Season multiplier: <strong>${s.m}x</strong></p><p class="sm">${ds}</p>`;
+  }else{inf.style.display='none';}
+  calc();
+}
+
+async function calc(){
+  // Early return if no appliances
+  if(S.apps.length === 0){
+    document.getElementById("sumC").innerHTML = "<div class='cd'><div class='empty'><div class='ei'>⚡</div><div class='et'>Add Appliances</div><div class='em'>Add household appliances to calculate consumption and bill.</div></div></div>";
+    document.getElementById('altC').innerHTML = "<div class='cd'><h3>Alerts</h3><div class='empty' style='padding:20px;'><div class='ei'>ℹ️</div><div class='et'>Ready to Start</div><div class='em'>Add appliances to see predictions.</div></div></div>";
+    return;
   }
 
-  // ============================================================
-  // INIT
-  // ============================================================
-  function init(){
-    const hg=document.getElementById('houseGrid');
-    hg.innerHTML=HOUSES.map(h=>`<button class="hb ${S.house===h.id?'on':''}" data-id="${h.id}" onclick="selH('${h.id}')"><div class="he">${h.e}</div><div class="hn">${h.n}</div><div class="hi">${h.d}</div></button>`).join('');
-    const sa=document.getElementById('sA');
-    sa.innerHTML='<option value="">Select appliance</option>'+AP.map(a=>`<option value="${a.id}">${a.e} ${a.n}</option>`).join('');
-    const ss=document.getElementById('sS');
-    ss.innerHTML='<option value="">Select season</option>'+SEASONS.map(s=>`<option value="${s.id}">${s.n}</option>`).join('');
-    calc();
-  }
+  // Calculate variables
+  S.rate = parseFloat(document.getElementById('iR').value) || 5;
+  S.limit = parseFloat(document.getElementById('iL').value) || 0;
+  const mt = SEASONS.find(s => s.id === S.season)?.m || 1;
+  const dWh = S.apps.reduce((s, a) => s + a.w * a.q * a.h, 0);
+  const mKwh = (dWh / 1000) * 30 * mt;
+  const mu = Math.round(mKwh);
+  const tb = tneb(mu);
+  const ov = S.limit > 0 && mKwh > S.limit;
+  const sd = SEASONS.find(s => s.id === S.season);
 
-  function selH(id){
-    S.house=id;
-    document.querySelectorAll('.hb').forEach(b=>{b.classList.toggle('on',b.dataset.id===id);});
-  }
+  // Get AI prediction
+  let aiData = await predictFromAI(S.apps);
 
-  function go(name){
-    document.querySelectorAll('.tbtn').forEach(b=>{b.classList.remove('on');b.setAttribute('aria-selected','false');});
-    document.getElementById('t-'+name).classList.add('on');
-    document.getElementById('t-'+name).setAttribute('aria-selected','true');
-    document.querySelectorAll('.pan').forEach(p=>p.classList.remove('on'));
-    document.getElementById('p-'+name).classList.add('on');
-    if(name==='summary'||name==='alerts')calc();
-  }
+  // ✅ Backend status flag (summary-only notice)
+  const backendOffline = !aiData;
 
-  function onAC(){
-    const aid=document.getElementById('sA').value;
-    const ts=document.getElementById('sT');
-    const ap=AP.find(a=>a.id===aid);
-    if(ap){ts.disabled=false;ts.innerHTML='<option value="">Select type</option>'+ap.t.map(t=>`<option value="${t.id}">${t.n} (${t.w}W)</option>`).join('');}
-    else{ts.disabled=true;ts.innerHTML='<option value="">Select type</option>';}
-    document.getElementById('bA').disabled=!aid;
-  }
+  let h = '';
 
-  function addA(){
-    const aid=document.getElementById('sA').value;
-    const tid=document.getElementById('sT').value;
-    if(!aid||!tid)return;
-    const ap=AP.find(a=>a.id===aid);const tp=ap.t.find(t=>t.id===tid);
-    if(!ap||!tp)return;
-    const q=Math.max(1,parseInt(document.getElementById('iQ').value)||1);
-    const h=Math.max(0.5,parseFloat(document.getElementById('iH').value)||8);
-    S.apps.push({id:S.nid++,aid:ap.id,an:ap.n,tid:tp.id,tn:tp.n,w:tp.w,q,h,e:ap.e});
-    document.getElementById('sA').value='';
-    document.getElementById('sT').innerHTML='<option value="">Select type</option>';
-    document.getElementById('sT').disabled=true;
-    document.getElementById('iQ').value='1';document.getElementById('iH').value='8';
-    document.getElementById('bA').disabled=true;
-    render();calc();
-  }
-
-  function remA(id){S.apps=S.apps.filter(a=>a.id!==id);render();calc();}
-
-  function render(){
-    const sec=document.getElementById('alSec');
-    const emp=document.getElementById('alEmpty');
-    if(!S.apps.length){sec.style.display='none';emp.style.display='block';return;}
-    sec.style.display='block';emp.style.display='none';
-    const dWh=S.apps.reduce((s,a)=>s+a.w*a.q*a.h,0);
-    const tQ=S.apps.reduce((s,a)=>s+a.q,0);
-    const mKwh=(dWh/1000)*30;
-    const mu=Math.round(mKwh);
-    const tb=tneb(mu);
-    document.getElementById('alSum').textContent=S.apps.length+' appliance(s) – Total: '+(dWh/1000).toFixed(2)+' kWh/day';
-    document.getElementById('alCnt').textContent=tQ+' items';
-    document.getElementById('alDaily').textContent=(dWh/1000).toFixed(2)+' kWh';
-    document.getElementById('alMonthly').textContent=mKwh.toFixed(1)+' kWh';
-    document.getElementById('alBill').textContent='₹'+tb.tot.toFixed(2);
-    const ls=document.getElementById('alList');
-    ls.innerHTML=S.apps.map(a=>{
-      const mk=((a.w*a.q*a.h)/1000)*30;
-      return`<div class="ai"><div class="aicon">${a.e}</div><div class="ainfo"><div class="nm">${a.an}</div><div class="tp">${a.tn}</div></div><div class="ast hm"><div class="v">${a.w}W</div><div class="l">Watt</div></div><div class="ast"><div class="v">x${a.q}</div><div class="l">Qty</div></div><div class="ast"><div class="v">${a.h}h</div><div class="l">Day</div></div><div class="ast gv"><div class="v">${mk.toFixed(1)}</div><div class="l">kWh/mo</div></div><button class="btn-r" onclick="remA(${a.id})"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button></div>`;
-    }).join('');
-  }
-
-  function onSC(){
-    S.season=document.getElementById('sS').value;
-    const inf=document.getElementById('sInfo');
-    if(S.season){
-      const s=SEASONS.find(x=>x.id===S.season);
-      const ds={summer:'Higher usage due to AC and cooling needs',monsoon:'Lower cooling needs, moderate usage',winter:'Lowest cooling needs, water heater usage rises',spring:'Average consumption period'}[S.season];
-      inf.style.display='block';inf.innerHTML=`<p>Season multiplier: <strong>${s.m}x</strong></p><p class="sm">${ds}</p>`;
-    }else{inf.style.display='none';}
-    calc();
-  }
-
-  async function calc(){
-    if (S.apps.length === 0) {
-      document.getElementById("sumC").innerHTML =
-        "<div class='cd'><div class='empty'><div class='ei'>⚡</div><div class='et'>Add Appliances</div><div class='em'>Add household appliances to calculate consumption and bill.</div></div></div>";
-      document.getElementById("altC").innerHTML =
-        "<div class='cd'><h3>Alerts</h3><div class='empty' style='padding:20px;'><div class='ei'>ℹ️</div><div class='et'>Ready to Start</div><div class='em'>Add appliances to see predictions.</div></div></div>";
-      return;
-    }
-
-    S.rate = parseFloat(document.getElementById("iR").value) || 5;
-    S.limit = parseFloat(document.getElementById("iL").value) || 0;
-
-    const mt = SEASONS.find(s => s.id === S.season)?.m || 1;
-    const dWh = S.apps.reduce((sum, a) => sum + a.w * a.q * a.h, 0);
-    const mKwh = (dWh / 1000) * 30 * mt;
-    const mu = Math.round(mKwh);
-    const tb = tneb(mu);
-    const ov = S.limit > 0 && mKwh > S.limit;
-    const sd = SEASONS.find(s => s.id === S.season);
-
-    const aiData = await predictFromAI(S.apps);
-    const backendOffline = !aiData;
-
-    let h = "";
-
-    // Summary-only backend warning
-    if (backendOffline) {
-      h += `<div class="cd cd-r">
-        <div style="display:flex;align-items:center;gap:12px;padding:20px;">
-          <div style="font-size:2rem;">🚨</div>
-          <div>
-            <div style="font-weight:700;font-size:1rem;color:#991b1b;">AI Backend Disconnected</div>
-            <div style="font-size:0.9rem;color:#7c2d12;margin-top:4px;">Showing manual estimate only. Start backend for AI prediction.</div>
-            <div style="font-family:monospace;background:#fff;padding:10px;border-radius:8px;margin-top:8px;font-size:0.85rem;color:#dc2626;border:1px solid #fca5a5;">python main.py</div>
-          </div>
+  // ✅ Show backend warning only in SUMMARY
+  if(backendOffline){
+    h += `<div class="cd cd-r">
+      <div style="display:flex;align-items:center;gap:12px;padding:20px;">
+        <div style="font-size:2rem;">🚨</div>
+        <div>
+          <div style="font-weight:700;font-size:1rem;color:#991b1b;">AI Backend Disconnected</div>
+          <div style="font-size:0.9rem;color:#7c2d12;margin-top:4px;">Showing manual estimate only. Start backend for AI prediction.</div>
+          <div style="font-family:monospace;background:#fff;padding:10px;border-radius:8px;margin-top:8px;font-size:0.85rem;color:#dc2626;border:1px solid #fca5a5;">python main.py</div>
         </div>
-      </div>`;
-    }
-
-    // AI card
-    if (aiData) {
-      const aiDiff = ((aiData.monthly_units - mKwh) / (mKwh || 1) * 100).toFixed(1);
-      const diffColor = aiDiff > 0 ? "#dc2626" : "#059669";
-      const diffIcon = aiDiff > 0 ? "⬆️" : "⬇️";
-
-      h += `<div class="cd" style="border-color:#ddd6fe;background:linear-gradient(135deg,#f5f0ff 0%,#faf8ff 100%);margin-bottom:20px;border:2px solid #a78bfa;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-          <span style="font-size:1.2rem;">🤖</span>
-          <h3 style="color:#5b21b6;">AI Model Prediction</h3>
-        </div>
-        <p class="ds" style="color:#7c6a9a;">Neural network trained on real household data</p>
-        <div style="margin-top:16px;display:grid;gap:14px;grid-template-columns:1fr 1fr;">
-          <div style="padding:16px;border:1px solid #c4b5fd;border-radius:10px;background:#fff;">
-            <div style="font-size:.72rem;font-weight:600;color:#5b21b6;text-transform:uppercase;letter-spacing:.5px;">📊 AI Monthly Units</div>
-            <div style="font-size:1.3rem;font-weight:800;color:#7c3aed;margin-top:8px;">${Math.max(0, aiData.monthly_units).toFixed(2)} kWh</div>
-            <div style="font-size:.75rem;color:#9ca3af;margin-top:4px;">Manual: ${mKwh.toFixed(2)} kWh</div>
-          </div>
-          <div style="padding:16px;border:1px solid #c4b5fd;border-radius:10px;background:#fff;">
-            <div style="font-size:.72rem;font-weight:600;color:#5b21b6;text-transform:uppercase;letter-spacing:.5px;">💰 AI Estimated Bill</div>
-            <div style="font-size:1.3rem;font-weight:800;color:#7c3aed;margin-top:8px;">₹${Math.max(aiData.estimated_bill, 1).toFixed(2)}</div>
-            <div style="font-size:.75rem;color:${diffColor};margin-top:4px;font-weight:600;">${diffIcon} ${Math.abs(aiDiff)}% ${aiDiff > 0 ? "higher" : "lower"}</div>
-          </div>
-        </div>
-      </div>`;
-    }
-
-    // Stat cards
-    h += `<div class="g4" style="margin-top:20px;">
-      <div class="sc cd-g">
-        <div class="tp"><span class="lb">Monthly Consumption</span><span style="font-size:1.2rem;">⚡</span></div>
-        <div class="vl">${mKwh.toFixed(2)} kWh</div>
-        <div class="sb">${(dWh/1000).toFixed(2)} kWh/day</div>
-      </div>
-      <div class="sc cd-b">
-        <div class="tp"><span class="lb">TNEB Bill</span><span style="font-size:1.1rem;">📈</span></div>
-        <div class="vl">₹${tb.tot.toFixed(2)}</div>
-        <div class="sb">${tb.cs}</div>
-      </div>
-      <div class="sc cd-p">
-        <div class="tp"><span class="lb">Season</span><span style="font-size:1.1rem;">🌡️</span></div>
-        <div class="vl">${S.season ? sd.n.split(" ")[0] : "Select"}</div>
-        <div class="sb">${S.season ? "Multiplier: " + mt + "x" : "No season"}</div>
-      </div>
-      <div class="sc ${!S.limit ? "cd-y" : ov ? "cd-r" : "cd-g"}">
-        <div class="tp"><span class="lb">Limit Status</span><span style="font-size:1.1rem;">${!S.limit ? "⚠️" : ov ? "🚨" : "✅"}</span></div>
-        <div class="vl">${!S.limit ? "No Limit" : ov ? "OVER!" : "OK"}</div>
-        <div class="sb">${!S.limit ? "Unlimited" : ov ? `${(mKwh - S.limit).toFixed(1)} kWh over` : "Within limit"}</div>
       </div>
     </div>`;
+  }
 
-    // Bill breakdown
-    h += `<div class="cd cd-b" style="margin-top:20px;"><h3>TNEB Bill Breakdown</h3><div style="margin-top:14px;">`;
-    for (const s of tb.bd) {
-      h += `<div class="sr">
-        <div><span class="sn">${s.slab}</span></div>
-        <span class="sa ${s.rate===0?"fr":""}">${s.rate===0?"FREE":"₹"+s.amt.toFixed(2)}</span>
-      </div>`;
-    }
-    h += `<div class="btb btb-p" style="margin-top:14px;"><span class="t">Total TNEB Bill</span><span class="v">₹${tb.tot.toFixed(2)}</span></div></div></div>`;
-
-    // Appliance breakdown
-    const sorted = S.apps.map(a => ({ ...a, mk: ((a.w * a.q * a.h) / 1000) * 30 * mt })).sort((a, b) => b.mk - a.mk);
-    h += `<div class="cd"><h3>Appliance Usage Breakdown</h3><div style="margin-top:14px;">`;
-    for (const a of sorted) {
-      const pc = mKwh > 0 ? (a.mk / mKwh) * 100 : 0;
-      h += `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid var(--g100);border-radius:10px;margin-bottom:8px;">
-        <span style="font-size:1.3rem;">${a.e}</span>
-        <div style="flex:1;">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-weight:600;font-size:0.9rem;">${a.an} (x${a.q})</span>
-            <span style="color:#7c3aed;font-weight:800;">${a.mk.toFixed(1)} kWh</span>
-          </div>
-          <div class="pt"><div class="pf" style="width:${pc}%;"></div></div>
+  // AI Prediction Card
+  if(aiData){
+    const aiDiff = ((aiData.monthly_units - mKwh) / mKwh * 100).toFixed(1);
+    const diffColor = aiDiff > 0 ? '#dc2626' : '#059669';
+    const diffIcon = aiDiff > 0 ? '⬆️' : '⬇️';
+    h += `<div class="cd" style="border-color:#ddd6fe;background:linear-gradient(135deg,#f5f0ff 0%,#faf8ff 100%);margin-bottom:20px;border:2px solid #a78bfa;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span style="font-size:1.2rem;">🤖</span>
+        <h3 style="color:#5b21b6;">AI Model Prediction</h3>
+      </div>
+      <p class="ds" style="color:#7c6a9a;">Neural network trained on real household data</p>
+      <div style="margin-top:16px;display:grid;gap:14px;grid-template-columns:1fr 1fr;">
+        <div style="padding:16px;border:1px solid #c4b5fd;border-radius:10px;background:#fff;">
+          <div style="font-size:.72rem;font-weight:600;color:#5b21b6;text-transform:uppercase;letter-spacing:.5px;">📊 AI Monthly Units</div>
+          <div style="font-size:1.3rem;font-weight:800;color:#7c3aed;margin-top:8px;">${Math.max(0, aiData.monthly_units).toFixed(2)} kWh</div>
+          <div style="font-size:.75rem;color:#9ca3af;margin-top:4px;">Manual: ${mKwh.toFixed(2)} kWh</div>
         </div>
-        <span class="bdg bdg-sm">${pc.toFixed(0)}%</span>
-      </div>`;
-    }
-    h += `</div></div>`;
+        <div style="padding:16px;border:1px solid #c4b5fd;border-radius:10px;background:#fff;">
+          <div style="font-size:.72rem;font-weight:600;color:#5b21b6;text-transform:uppercase;letter-spacing:.5px;">💰 AI Estimated Bill</div>
+          <div style="font-size:1.3rem;font-weight:800;color:#7c3aed;margin-top:8px;">₹${Math.max(aiData.estimated_bill, 1).toFixed(2)}</div>
+          <div style="font-size:.75rem;color:${diffColor};margin-top:4px;font-weight:600;">${diffIcon} ${Math.abs(aiDiff)}% ${aiDiff > 0 ? 'higher' : 'lower'}</div>
+        </div>
+      </div>
+    </div>`;
+  }
 
-    // Tips
-    h += `<div class="cd cd-g" style="margin-top:20px;"><h3 style="color:#065f46;">💡 Energy Saving Tips</h3><div class="tg">`;
-    const tsecs = [
-      { t: "Cooling", i: "❄️", d: TIPS.cool },
-      { t: "Lighting", i: "💡", d: TIPS.light },
-      { t: "Kitchen", i: "🍳", d: TIPS.kitchen },
-      { t: "General", i: "⚙️", d: TIPS.gen }
-    ];
-    for (const s of tsecs) {
-      h += `<div class="ts"><div class="st">${s.i} ${s.t}</div>`;
-      for (const t of s.d.slice(0, 2)) h += `<div class="ti"><div class="td"></div><div class="tx">${t}</div></div>`;
-      h += `</div>`;
-    }
-    h += `</div></div>`;
+  // Stats Cards
+  h += `<div class="g4" style="margin-top:20px;">
+    <div class="sc cd-g">
+      <div class="tp"><span class="lb">Monthly Consumption</span><span style="font-size:1.2rem;">⚡</span></div>
+      <div class="vl">${mKwh.toFixed(2)} kWh</div>
+      <div class="sb">${(dWh/1000).toFixed(2)} kWh/day</div>
+    </div>
+    <div class="sc cd-b">
+      <div class="tp"><span class="lb">TNEB Bill</span><span style="font-size:1.1rem;">📈</span></div>
+      <div class="vl">₹${tb.tot.toFixed(2)}</div>
+      <div class="sb">${tb.cs}</div>
+    </div>
+    <div class="sc cd-p">
+      <div class="tp"><span class="lb">Season</span><span style="font-size:1.1rem;">🌡️</span></div>
+      <div class="vl">${S.season ? sd.n.split(' ')[0] : 'Select'}</div>
+      <div class="sb">${S.season ? 'Multiplier: ' + mt + 'x' : 'No season'}</div>
+    </div>
+    <div class="sc ${!S.limit ? 'cd-y' : ov ? 'cd-r' : 'cd-g'}">
+      <div class="tp"><span class="lb">Limit Status</span><span style="font-size:1.1rem;">${!S.limit ? '⚠️' : ov ? '🚨' : '✅'}</span></div>
+      <div class="vl">${!S.limit ? 'No Limit' : ov ? 'OVER!' : 'OK'}</div>
+      <div class="sb">${!S.limit ? 'Unlimited' : ov ? `${(mKwh - S.limit).toFixed(1)} kWh over` : 'Within limit'}</div>
+    </div>
+  </div>`;
 
-    document.getElementById("sumC").innerHTML = h;
+  // TNEB Bill Breakdown
+  h += `<div class="cd cd-b" style="margin-top:20px;">
+    <h3>TNEB Bill Breakdown</h3>
+    <div style="margin-top:14px;">`;
+  for(const s of tb.bd) {
+    h += `<div class="sr">
+      <div><span class="sn">${s.slab}</span></div>
+      <span class="sa ${s.rate === 0 ? 'fr' : ''}">${s.rate === 0 ? 'FREE' : '₹' + s.amt.toFixed(2)}</span>
+    </div>`;
+  }
+  h += `<div class="btb btb-p" style="margin-top:14px;">
+    <span class="t">Total TNEB Bill</span>
+    <span class="v">₹${tb.tot.toFixed(2)}</span>
+  </div></div></div>`;
 
-    // Alerts
-    const al = [];
-    const hC = S.apps.filter(a => ((a.w * a.q * a.h) / 1000) * 30 > 50);
-    if (hC.length) al.push({ t: "w", ti: "⚡ High Power Appliances", ms: hC.map(a => a.an).join(", ") + " use significant energy." });
-    if (S.limit > 0 && mKwh > S.limit) al.push({ t: "d", ti: "🚨 Limit Exceeded!", ms: `${mKwh.toFixed(1)} kWh exceeds your ${S.limit} kWh limit!` });
-    if (mu <= 100) al.push({ t: "s", ti: "✅ Free Tier!", ms: `${mu} units in free tier (0-100). Bill may be very low.` });
-    if (tb.tot > 2000) al.push({ t: "w", ti: "💰 High Bill", ms: `₹${tb.tot.toFixed(2)} is high. Check tips.` });
-    if (!S.season) al.push({ t: "i", ti: "📅 Season Info", ms: "Select season for accurate estimates." });
-    if (aiData && aiData.monthly_units > mKwh * 1.2) al.push({ t: "w", ti: "🤖 AI Alert", ms: "AI predicts higher usage. Review hours." });
+  // Appliance Usage
+  const sorted = S.apps.map(a => ({...a, mk: ((a.w * a.q * a.h) / 1000) * 30 * mt})).sort((a, b) => b.mk - a.mk);
+  h += `<div class="cd"><h3>Appliance Usage Breakdown</h3><div style="margin-top:14px;">`;
+  for(const a of sorted) {
+    const pc = mKwh > 0 ? (a.mk / mKwh) * 100 : 0;
+    h += `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid var(--g100);border-radius:10px;margin-bottom:8px;">
+      <span style="font-size:1.3rem;">${a.e}</span>
+      <div style="flex:1;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <span style="font-weight:600;font-size:0.9rem;">${a.an} (x${a.q})</span>
+          <span style="color:#7c3aed;font-weight:800;">${a.mk.toFixed(1)} kWh</span>
+        </div>
+        <div class="pt"><div class="pf" style="width:${pc}%;"></div></div>
+      </div>
+      <span class="bdg bdg-sm">${pc.toFixed(0)}%</span>
+    </div>`;
+  }
+  h += `</div></div>`;
 
-    const ic = { d: "🚨", w: "⚠️", s: "✅", i: "ℹ️" };
-    const cl = { d: "alt-d", w: "alt-w", s: "alt-s", i: "alt-inf" };
+  // Energy Saving Tips
+  h += `<div class="cd cd-g" style="margin-top:20px;">
+    <h3 style="color:#065f46;">💡 Energy Saving Tips</h3>
+    <div class="tg">`;
+  const tsecs = [
+    {t:"Cooling", i:"❄️", d:TIPS.cool},
+    {t:"Lighting", i:"💡", d:TIPS.light},
+    {t:"Kitchen", i:"🍳", d:TIPS.kitchen},
+    {t:"General", i:"⚙️", d:TIPS.gen}
+  ];
+  for(const s of tsecs) {
+    h += `<div class="ts"><div class="st">${s.i} ${s.t}</div>`;
+    for(const t of s.d.slice(0, 2)) h += `<div class="ti"><div class="td"></div><div class="tx">${t}</div></div>`;
+    h += `</div>`;
+  }
+  h += `</div></div>`;
+  document.getElementById('sumC').innerHTML = h;
 
-    let ah = `<div class="cd"><h3>Alerts & Recommendations</h3><div style="margin-top:18px;">`;
-    if (!al.length) {
-      ah += `<div class="empty" style="padding:30px;"><div class="ei">✅</div><div class="et">All Good!</div><div class="em">Your consumption looks reasonable.</div></div>`;
-    } else {
-      for (const a of al) {
-        ah += `<div class="alt ${cl[a.t]}"><div class="alt-i">${ic[a.t]}</div><div><div class="alt-t">${a.ti}</div><p class="alt-m">${a.ms}</p></div></div>`;
-      }
-    }
-    ah += `</div></div>`;
+  // ============ ALERTS ============
+  const al = [];
+  const hC = S.apps.filter(a => ((a.w * a.q * a.h) / 1000) * 30 > 50);
+  if(hC.length) al.push({t:'w', ti:'⚡ High Power Appliances', ms: hC.map(a => a.an).join(', ') + ' use significant energy.'});
+  if(S.limit > 0 && mKwh > S.limit) al.push({t:'d', ti:'🚨 Limit Exceeded!', ms: `${mKwh.toFixed(1)} kWh exceeds your ${S.limit} kWh limit!`});
+  if(mu <= 100 && S.apps.length > 0) al.push({t:'s', ti:'✅ Free Tier!', ms: `${mu} units in free tier (0-100). Bill: ₹0!`});
+  if(tb.tot > 2000) al.push({t:'w', ti:'💰 High Bill', ms: `₹${tb.tot.toFixed(2)} is high. Check energy tips.`});
+  if(S.apps.some(a => a.aid === 'ac') && S.season === 'summer') al.push({t:'i', ti:'❄️ Summer AC Tip', ms: 'AC uses 40% energy. Set 24-26°C + ceiling fan = 30% savings.'});
+  if(!S.season) al.push({t:'i', ti:'📅 Season Info', ms: 'Select season for accurate estimates.'});
+  if(S.apps.some(a => a.tid === 'inc60' || a.tid === 'inc100' || a.tid === 'crt')) al.push({t:'w', ti:'🔦 Old Tech', ms: 'Incandescent uses 80% more. Switch to LED!'});
+  if(mKwh > 0 && mKwh < 150) al.push({t:'s', ti:'✅ Efficient!', ms: `${mKwh.toFixed(1)} kWh/month is very efficient!`});
 
+  const ic = {d:'🚨', w:'⚠️', s:'✅', i:'ℹ️'};
+  const cl = {d:'alt-d', w:'alt-w', s:'alt-s', i:'alt-inf'};
+  let ah = `<div class="cd"><h3>Alerts & Recommendations</h3><div style="margin-top:18px;">`;
+  if(!al.length) ah += `<div class="empty" style="padding:30px;"><div class="ei">✅</div><div class="et">All Good!</div><div class="em">Your consumption looks reasonable.</div></div>`;
+  else for(const a of al) ah += `<div class="alt ${cl[a.t]}"><div class="alt-i">${ic[a.t]}</div><div><div class="alt-t">${a.ti}</div><p class="alt-m">${a.ms}</p></div></div>`;
+  ah += `</div></div>`;
+  
+  // Quick Stats
+  if(S.apps.length > 0) {
     ah += `<div class="cd cd-p" style="margin-top:20px;">
       <h3>Quick Statistics</h3>
       <div class="qg">
         <div class="qb"><div class="ql">Daily Cost</div><div class="qv">₹${(tb.tot/30).toFixed(2)}</div></div>
         <div class="qb"><div class="ql">Monthly</div><div class="qv">₹${tb.tot.toFixed(2)}</div></div>
-        <div class="qb"><div class="ql">Yearly Est.</div><div class="qv">₹${(tb.tot*12).toLocaleString("en-IN")}</div></div>
-        <div class="qb"><div class="ql">Total Items</div><div class="qv">${S.apps.reduce((s,a)=>s+a.q,0)}</div></div>
+        <div class="qb"><div class="ql">Yearly Est.</div><div class="qv">₹${(tb.tot*12).toLocaleString('en-IN')}</div></div>
+        <div class="qb"><div class="ql">Total Items</div><div class="qv">${S.apps.reduce((s,a) => s+a.q, 0)}</div></div>
         <div class="qb"><div class="ql">Appliances</div><div class="qv">${S.apps.length}</div></div>
         <div class="qb"><div class="ql">Avg Usage</div><div class="qv">${(mKwh/S.apps.length).toFixed(1)} kWh</div></div>
       </div>
     </div>`;
-
-    document.getElementById("altC").innerHTML = ah;
   }
 
-  // Init + PWA registration
-  document.addEventListener("DOMContentLoaded", () => {
-    init();
-    render();
+  document.getElementById('altC').innerHTML = ah;
+}
 
+function formatAssistantMessage(text){
+  const safe = String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  return safe
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>") // **bold** -> bold
+    .replace(/^\s*-\s+/gm, "• ")                      // dash bullets -> bullet
+    .replace(/\n/g, "<br>");                          // new lines
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+  <!-- ============ AI CHATBOT WIDGET (MUST BE INSIDE BODY) ============ -->
+  <div id="chat-widget" style="position:fixed;bottom:16px;right:16px;z-index:9999;font-family:'Inter',sans-serif;">
+    <!-- Toggle Button -->
+    <button
+      id="chat-toggle"
+      aria-expanded="false"
+      style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#7c3aed 0%,#a855f7 100%);color:#fff;border:none;font-size:1.05rem;cursor:pointer;box-shadow:0 2px 10px rgba(124,58,237,0.35);display:flex;align-items:center;justify-content:center;transition:all .2s;padding:0;"
+      title="AI Assistant"
+      type="button"
+    >💬</button>
+
+    <!-- Chat Popup -->
+    <div
+      id="chat-popup"
+      style="display:none;position:absolute;bottom:56px;right:0;width:min(92vw,360px);max-height:min(78vh,520px);background:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.14);border:1px solid #e5e7eb;overflow:hidden;animation:slideUp .18s ease;z-index:10000;"
+      role="dialog"
+      aria-label="AI Assistant"
+    >
+      <div style="background:linear-gradient(135deg,#7c3aed 0%,#a855f7 100%);color:#fff;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:1.05rem;">🤖</span>
+          <div>
+            <div style="font-weight:800;font-size:0.9rem;line-height:1;">AI Assistant</div>
+            <div style="font-size:0.7rem;opacity:0.85;margin-top:2px;">Energy saver tips</div>
+          </div>
+        </div>
+        <button id="close-chat" type="button" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem;padding:2px 6px;">✕</button>
+      </div>
+
+      <div id="chat-messages" style="height:min(50vh,320px);overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#f9fafb;">
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#e9d5ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.95rem;">🤖</div>
+          <div style="background:#fff;padding:10px 12px;border-radius:10px;max-width:250px;border:1px solid #e5e7eb;font-size:0.85rem;line-height:1.45;color:#374151;">
+            Hey there! Ask me for electricity saving tips or efficient device suggestions.
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:12px;border-top:1px solid #e5e7eb;display:flex;gap:8px;background:#fff;">
+        <input id="chat-input" type="text" placeholder="Type a question..." style="flex:1;padding:9px 10px;border:1.5px solid #d1d5db;border-radius:8px;font-size:0.85rem;outline:none;font-family:inherit;background:#f9fafb;" />
+        <button id="send-chat" type="button" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:800;font-size:0.85rem;min-width:42px;">↑</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    #chat-toggle:hover { transform: scale(1.06); }
+    #chat-toggle:active { transform: scale(0.96); }
+    #chat-input:focus { border-color:#7c3aed; background:#fff; box-shadow: 0 0 0 3px rgba(124,58,237,0.10); }
+    #chat-messages::-webkit-scrollbar { width: 6px; }
+    #chat-messages::-webkit-scrollbar-thumb { background: #c4b5fd; border-radius: 10px; }
+  </style>
+
+  <style>
+    /* Responsive AI assistant */
+    #chat-widget{
+      right:max(12px, env(safe-area-inset-right));
+      bottom:max(12px, env(safe-area-inset-bottom));
+    }
+
+    #chat-popup{
+      width:min(92vw, 360px) !important;
+      max-height:min(78vh, 520px) !important;
+    }
+
+    #chat-messages{
+      height:min(50vh, 320px) !important;
+    }
+
+    @media (max-width: 480px){
+      #chat-toggle{
+        width:44px !important;
+        height:44px !important;
+        font-size:1rem !important;
+      }
+
+      #chat-popup{
+        right:0 !important;
+        width:calc(100vw - 24px) !important;
+        max-height:74vh !important;
+      }
+
+      #chat-messages{
+        height:42vh !important;
+      }
+    }
+  </style>
+
+  <script>
+    // Chat widget init (no DOMContentLoaded needed since this is at end of body)
+    (function initChatWidget(){
+      const chatWidget = document.getElementById('chat-widget');
+      const chatToggle = document.getElementById('chat-toggle');
+      const chatPopup = document.getElementById('chat-popup');
+      const closeChat = document.getElementById('close-chat');
+      const chatMessages = document.getElementById('chat-messages');
+      const chatInput = document.getElementById('chat-input');
+      const sendChat = document.getElementById('send-chat');
+
+      if(!chatWidget || !chatToggle || !chatPopup || !closeChat || !chatMessages || !chatInput || !sendChat) return;
+
+      let chatOpen = false;
+
+      function setOpen(open){
+        chatOpen = !!open;
+        chatPopup.style.display = chatOpen ? 'block' : 'none';
+        chatToggle.setAttribute('aria-expanded', chatOpen ? 'true' : 'false');
+        if(chatOpen){
+          chatInput.focus();
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+      }
+
+      chatToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setOpen(!chatOpen);
+      });
+
+      closeChat.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setOpen(false);
+      });
+
+      // click outside closes
+      document.addEventListener('click', (e) => {
+        if(!chatOpen) return;
+        if(!chatWidget.contains(e.target)) setOpen(false);
+      });
+
+      // ESC closes
+      document.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape') setOpen(false);
+      });
+
+      async function sendChatMessage(){
+        const message = chatInput.value.trim();
+        if(!message) return;
+
+        const userDiv = document.createElement('div');
+        userDiv.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;align-items:flex-start;';
+        userDiv.innerHTML = `<div style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;padding:10px 12px;border-radius:10px;max-width:250px;font-size:0.85rem;line-height:1.45;word-wrap:break-word;">${message}</div>`;
+        chatMessages.appendChild(userDiv);
+        chatInput.value = '';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        const typingDiv = document.createElement('div');
+        typingDiv.style.cssText = 'display:flex;gap:8px;align-items:flex-start;';
+        typingDiv.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;background:#e9d5ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.95rem;">🤖</div>
+          <div style="background:#fff;padding:10px 12px;border-radius:10px;max-width:250px;border:1px solid #e5e7eb;font-size:0.85rem;">Thinking…</div>`;
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        try{
+          // IMPORTANT: call your backend (do NOT call Azure OpenAI directly from browser)
+          const resp = await fetch('http://localhost:8000/chat', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ message })
+          });
+
+          typingDiv.remove();
+
+          if(!resp.ok) throw new Error(`Chat API error: ${resp.status}`);
+          const data = await resp.json();
+          const reply = (data && data.reply) ? String(data.reply) : 'Sorry, I could not generate a reply.';
+
+          const botDiv = document.createElement('div');
+          botDiv.style.cssText = 'display:flex;gap:8px;align-items:flex-start;';
+          botDiv.innerHTML = `
+            <div style="width:28px;height:28px;border-radius:50%;background:#e9d5ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.95rem;">🤖</div>
+            <div style="background:#fff;padding:10px 12px;border-radius:10px;max-width:250px;border:1px solid #e5e7eb;font-size:0.85rem;line-height:1.45;color:#374151;word-wrap:break-word;">
+              ${formatAssistantMessage(reply)}
+            </div>
+          `;
+          chatMessages.appendChild(botDiv);
+        }catch(err){
+          typingDiv.remove();
+          const errorDiv = document.createElement('div');
+          errorDiv.style.cssText = 'display:flex;gap:8px;align-items:flex-start;';
+          errorDiv.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;background:#e9d5ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.95rem;">🤖</div>
+            <div style="background:#fff;padding:10px 12px;border-radius:10px;max-width:250px;border:1px solid #fca5a5;font-size:0.85rem;color:#991b1b;">Backend chat is offline. Start the backend and try again.</div>`;
+          chatMessages.appendChild(errorDiv);
+        }
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      sendChat.addEventListener('click', sendChatMessage);
+      chatInput.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter'){
+          e.preventDefault();
+          sendChatMessage();
+        }
+      });
+
+      setOpen(false);
+    })();
+  </script>
+
+  <!-- PWA: Service Worker registration -->
+  <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", async () => {
         try {
@@ -800,8 +1020,6 @@
         }
       });
     }
-  });
-</script>
+  </script>
 </body>
 </html>
-
