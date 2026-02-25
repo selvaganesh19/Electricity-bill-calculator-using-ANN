@@ -300,7 +300,8 @@
           <span class="bdg bdg-p" id="alCnt"></span>
         </div>
         <div id="alList" style="margin-top:16px;"></div>
-        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wr
+        ap;">
           <div style="flex:1;padding:14px 18px;border-radius:10px;background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:1px solid #a7f3d0;">
             <div style="font-size:.72rem;font-weight:600;color:#065f46;text-transform:uppercase;letter-spacing:.5px;">Daily Usage</div>
             <div id="alDaily" style="font-size:1.15rem;font-weight:800;color:#059669;margin-top:4px;"></div>
@@ -695,28 +696,24 @@ async function calc(){
   // Get AI prediction
   let aiData = await predictFromAI(S.apps);
 
-  // ✅ Backend status flag (summary-only notice)
-  const backendOffline = !aiData;
+  // 🚨 backend OFF => stop all manual rendering
+  const aiOk =
+    aiData &&
+    Number.isFinite(Number(aiData.monthly_units)) &&
+    Number.isFinite(Number(aiData.estimated_bill));
+
+  if (!aiOk) {
+    showBackendDisconnectedUI();
+    return;
+  }
+
+  setAIBackendStatus(true);
 
   let h = '';
 
-  // ✅ Show backend warning only in SUMMARY
-  if(backendOffline){
-    h += `<div class="cd cd-r">
-      <div style="display:flex;align-items:center;gap:12px;padding:20px;">
-        <div style="font-size:2rem;">🚨</div>
-        <div>
-          <div style="font-weight:700;font-size:1rem;color:#991b1b;">AI Backend Disconnected</div>
-          <div style="font-size:0.9rem;color:#7c2d12;margin-top:4px;">Showing manual estimate only. Start backend for AI prediction.</div>
-          <div style="font-family:monospace;background:#fff;padding:10px;border-radius:8px;margin-top:8px;font-size:0.85rem;color:#dc2626;border:1px solid #fca5a5;">python main.py</div>
-        </div>
-      </div>
-    </div>`;
-  }
-
   // AI Prediction Card
-  if(aiData){
-    const aiDiff = ((aiData.monthly_units - mKwh) / mKwh * 100).toFixed(1);
+  {
+    const aiDiff = mKwh > 0 ? ((aiData.monthly_units - mKwh) / mKwh * 100).toFixed(1) : "0.0";
     const diffColor = aiDiff > 0 ? '#dc2626' : '#059669';
     const diffIcon = aiDiff > 0 ? '⬆️' : '⬇️';
     h += `<div class="cd" style="border-color:#ddd6fe;background:linear-gradient(135deg,#f5f0ff 0%,#faf8ff 100%);margin-bottom:20px;border:2px solid #a78bfa;">
@@ -728,12 +725,12 @@ async function calc(){
       <div style="margin-top:16px;display:grid;gap:14px;grid-template-columns:1fr 1fr;">
         <div style="padding:16px;border:1px solid #c4b5fd;border-radius:10px;background:#fff;">
           <div style="font-size:.72rem;font-weight:600;color:#5b21b6;text-transform:uppercase;letter-spacing:.5px;">📊 AI Monthly Units</div>
-          <div style="font-size:1.3rem;font-weight:800;color:#7c3aed;margin-top:8px;">${Math.max(0, aiData.monthly_units).toFixed(2)} kWh</div>
-          <div style="font-size:.75rem;color:#9ca3af;margin-top:4px;">Manual: ${mKwh.toFixed(2)} kWh</div>
+          <div style="font-size:1.3rem;font-weight:800;color:#7c3aed;margin-top:8px;">${Number(aiData.monthly_units).toFixed(2)} kWh</div>
+          <div style="font-size:.75rem;color:#9ca3af;margin-top:4px;">AI Calculated Consumption</div>
         </div>
         <div style="padding:16px;border:1px solid #c4b5fd;border-radius:10px;background:#fff;">
           <div style="font-size:.72rem;font-weight:600;color:#5b21b6;text-transform:uppercase;letter-spacing:.5px;">💰 AI Estimated Bill</div>
-          <div style="font-size:1.3rem;font-weight:800;color:#7c3aed;margin-top:8px;">₹${Math.max(aiData.estimated_bill, 1).toFixed(2)}</div>
+          <div style="font-size:1.3rem;font-weight:800;color:#7c3aed;margin-top:8px;">₹${Number(aiData.estimated_bill).toFixed(2)}</div>
           <div style="font-size:.75rem;color:${diffColor};margin-top:4px;font-weight:600;">${diffIcon} ${Math.abs(aiDiff)}% ${aiDiff > 0 ? 'higher' : 'lower'}</div>
         </div>
       </div>
