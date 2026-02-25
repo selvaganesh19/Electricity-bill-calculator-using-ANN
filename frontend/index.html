@@ -481,18 +481,26 @@ let S={house:"2bhk",season:"",rate:5,limit:0,apps:[],nid:1};
 let aiOfflineNotified = false;
 
 function addAIMsg(text, role = "bot"){
-  const box = document.getElementById("aiMsgs");
+  const box = document.getElementById("chat-messages") || document.getElementById("aiMsgs");
   if (!box) return;
-  const d = document.createElement("div");
-  d.className = `ai-b ${role}`;
-  d.textContent = text;
-  box.appendChild(d);
+
+  const row = document.createElement("div");
+  row.style.cssText = `display:flex;gap:8px;align-items:flex-start;${role === "user" ? "justify-content:flex-end;" : ""}`;
+
+  if (role === "user") {
+    row.innerHTML = `<div style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;padding:10px 12px;border-radius:10px;max-width:250px;font-size:0.85rem;line-height:1.45;word-wrap:break-word;">${String(text).replace(/</g,"&lt;").replace(/>/g,"&gt;")}</div>`;
+  } else {
+    row.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;background:#e9d5ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.95rem;">🤖</div>
+      <div style="background:#fff;padding:10px 12px;border-radius:10px;max-width:250px;border:1px solid #e5e7eb;font-size:0.85rem;line-height:1.45;color:#374151;">${String(text).replace(/</g,"&lt;").replace(/>/g,"&gt;")}</div>`;
+  }
+
+  box.appendChild(row);
   box.scrollTop = box.scrollHeight;
 }
 
 function setAIBackendStatus(isOnline){
-  const input = document.getElementById("aiInput");
-  const send = document.getElementById("aiSendBtn");
+  const input = document.getElementById("chat-input") || document.getElementById("aiInput");
+  const send = document.getElementById("send-chat") || document.getElementById("aiSendBtn");
   if (input) input.disabled = !isOnline;
   if (send) send.disabled = !isOnline;
 
