@@ -610,7 +610,7 @@ function go(name){
   document.getElementById('t-'+name).setAttribute('aria-selected','true');
   document.querySelectorAll('.pan').forEach(p=>p.classList.remove('on'));
   document.getElementById('p-'+name).classList.add('on');
-  if(name==='summary'||name==='alerts')calc();
+  if(name==='summary'||name==='alerts') calc();
 }
 
 function onAC(){
@@ -1021,7 +1021,6 @@ document.addEventListener('DOMContentLoaded', init);
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
         try{
-          // IMPORTANT: call your backend (do NOT call Azure OpenAI directly from browser)
           const resp = await fetch('http://localhost:8000/chat', {
             method: 'POST',
             headers: {'Content-Type':'application/json'},
@@ -1033,6 +1032,7 @@ document.addEventListener('DOMContentLoaded', init);
           if(!resp.ok) throw new Error(`Chat API error: ${resp.status}`);
           const data = await resp.json();
           const reply = (data && data.reply) ? String(data.reply) : 'Sorry, I could not generate a reply.';
+          setAIBackendStatus(true);
 
           const botDiv = document.createElement('div');
           botDiv.style.cssText = 'display:flex;gap:8px;align-items:flex-start;';
@@ -1045,10 +1045,11 @@ document.addEventListener('DOMContentLoaded', init);
           chatMessages.appendChild(botDiv);
         }catch(err){
           typingDiv.remove();
+          setAIBackendStatus(false);
           const errorDiv = document.createElement('div');
           errorDiv.style.cssText = 'display:flex;gap:8px;align-items:flex-start;';
           errorDiv.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;background:#e9d5ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.95rem;">🤖</div>
-            <div style="background:#fff;padding:10px 12px;border-radius:10px;max-width:250px;border:1px solid #fca5a5;font-size:0.85rem;color:#991b1b;">Backend chat is offline. Start the backend and try again.</div>`;
+            <div style="background:#fff;padding:10px 12px;border-radius:10px;max-width:250px;border:1px solid #fca5a5;font-size:0.85rem;color:#991b1b;">Backend is disconnected. Please connect backend.</div>`;
           chatMessages.appendChild(errorDiv);
         }
 
