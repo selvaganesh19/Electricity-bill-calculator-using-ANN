@@ -158,60 +158,66 @@ def predict(data: PredictionInput):
 
     try:
         # ===============================
-        # STEP 1 — Create appliance features
+        # STEP 1 — Feature creation
         # ===============================
         X = create_features(data.appliances)
-
         kitchen, laundry, heavy, hours = X[0]
 
-        # Manual physics-based energy
         manual_daily = kitchen + laundry + heavy
 
+        # 🚨 no appliance safety
+        if manual_daily <= 0:
+            return {
+                "daily_units": 0,
+                "monthly_units": 0,
+                "estimated_bill": 0
+            }
 
         # ===============================
-        # STEP 2 — Scale input
+        # STEP 2 — Scale
         # ===============================
         X_scaled = SCALER.transform(X)
 
-
         # ===============================
-        # STEP 3 — AI prediction
+        # STEP 3 — AI raw prediction
         # ===============================
-        raw_ai_output = float(
+        raw_ai = float(
             MODEL.predict(X_scaled, verbose=0)[0][0]
         )
 
+        # ===============================
+        # STEP 4 — Stable AI correction
+        # ===============================
+        ai_correction = np.tanh(raw_ai) * 0.15
 
         # ===============================
-        # STEP 4 — Convert AI → correction
-        # ===============================
-        # squash value safely between -0.2 to +0.2
-        ai_correction = np.tanh(raw_ai_output) * 0.2
-
-
-        # ===============================
-        # STEP 5 — Hybrid prediction
+        # STEP 5 — Hybrid energy
         # ===============================
         daily_units = manual_daily * (1 + ai_correction)
 
+        # ✅ PHYSICAL LIMITS
+        daily_units = np.clip(
+            daily_units,
+            manual_daily * 0.7,
+            manual_daily * 1.5
+        )
 
         # ===============================
-        # STEP 6 — Safety limits
-        # ===============================
-        daily_units = np.clip(daily_units, 0.1, 200)
-
-
-        # ===============================
-        # STEP 7 — Monthly units
+        # STEP 6 — Monthly
         # ===============================
         monthly_units = daily_units * 30
 
+        # ✅ realistic household floor
+        monthly_units = max(monthly_units, 120)
 
         # ===============================
-        # STEP 8 — Bill calculation
+        # STEP 7 — Bill
         # ===============================
         bill = tneb_bill(monthly_units)
 
+        # ✅ UI stability (avoid ₹0)
+        if bill <= 0:
+            bill = monthly_units * 2.25
 
         return {
             "manual_daily_units": round(manual_daily, 2),
@@ -224,7 +230,6 @@ def predict(data: PredictionInput):
     except Exception as e:
         print("❌ Prediction error:", e)
         return {"error": str(e)}
-
 # =====================================
 # CHAT API
 # =====================================

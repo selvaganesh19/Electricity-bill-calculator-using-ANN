@@ -1021,7 +1021,7 @@ document.addEventListener('DOMContentLoaded', init);
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
         try{
-          const resp = await fetch('http://localhost:8000/chat', {
+          const resp = await fetch('https://selva1909-electricity-bill-calculator.hf.space/chat', {
             method: 'POST',
             headers: {'Content-Type':'application/json'},
             body: JSON.stringify({ message })
