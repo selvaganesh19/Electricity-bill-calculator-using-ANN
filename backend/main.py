@@ -10,21 +10,12 @@ import httpx
 from dotenv import load_dotenv
 from fastapi import HTTPException
 from pydantic import BaseModel
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 
 # Load .env from project root
 ROOT_DIR = Path(__file__).resolve().parents[1]
 load_dotenv(ROOT_DIR / ".env")
 
 app = FastAPI(title="Electricity Bill Predictor")
-
-# ✅ expose frontend folder
-app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
-
-@app.get("/")
-def home():
-    return FileResponse("frontend/index.html")
 
 # =====================================
 # CORS CONFIGURATION (MUST BE FIRST)
