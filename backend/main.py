@@ -30,7 +30,7 @@ app.add_middleware(
 
 # =====================================
 # GLOBAL VARIABLES
-# =====================================
+
 MODEL = None
 SCALER = None
 Y_SCALER = None
