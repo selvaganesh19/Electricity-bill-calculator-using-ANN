@@ -749,8 +749,12 @@ async function calc(){
   // AI Prediction Card
   {
     const aiDiff = mKwh > 0 ? ((aiData.monthly_units - mKwh) / mKwh * 100).toFixed(1) : "0.0";
-    const diffColor = aiDiff > 0 ? '#dc2626' : '#059669';
-    const diffIcon = aiDiff > 0 ? '⬆️' : '⬇️';
+    const diffColor = aiDiff > 0 ? '#dc2626' : aiDiff < 0 ? '#059669' : '#4b5563';
+    const diffIcon = aiDiff > 0 ? '⬆️' : aiDiff < 0 ? '⬇️' : '➖';
+    let aiLabel = 'change';
+    if (aiDiff > 0) aiLabel = 'higher';
+    else if (aiDiff < 0) aiLabel = 'lower';
+
     h += `<div class="cd" style="border-color:#ddd6fe;background:linear-gradient(135deg,#f5f0ff 0%,#faf8ff 100%);margin-bottom:20px;border:2px solid #a78bfa;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
         <span style="font-size:1.2rem;">🤖</span>
@@ -766,7 +770,9 @@ async function calc(){
         <div style="padding:16px;border:1px solid #c4b5fd;border-radius:10px;background:#fff;">
           <div style="font-size:.72rem;font-weight:600;color:#5b21b6;text-transform:uppercase;letter-spacing:.5px;">💰 AI Estimated Bill</div>
           <div style="font-size:1.3rem;font-weight:800;color:#7c3aed;margin-top:8px;">₹${Number(aiData.estimated_bill).toFixed(2)}</div>
-          <div style="font-size:.75rem;color:${diffColor};margin-top:4px;font-weight:600;">${diffIcon} ${Math.abs(aiDiff)}% ${diffLabel}</div>
+          <div style="font-size:.75rem;color:${diffColor};margin-top:4px;font-weight:600;">
+            ${diffIcon} ${Math.abs(aiDiff)}% ${aiLabel}
+          </div>
         </div>
       </div>
     </div>`;
@@ -906,7 +912,7 @@ async function calc(){
 
   let ah = "";
 
-  // ---- Top comparison card: This vs Next month bill & units ----
+  // ---- Top comparison card: This Month vs Next month bill & units ----
   ah += `<div class="cd cd-b">
     <h3>Bill & Units Comparison: This Month vs Next Month</h3>
     <p class="ds">Based on your expected usage change of <strong>${S.usageChange || 0}%</strong>.</p>
