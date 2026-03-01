@@ -766,7 +766,7 @@ async function calc(){
         <div style="padding:16px;border:1px solid #c4b5fd;border-radius:10px;background:#fff;">
           <div style="font-size:.72rem;font-weight:600;color:#5b21b6;text-transform:uppercase;letter-spacing:.5px;">💰 AI Estimated Bill</div>
           <div style="font-size:1.3rem;font-weight:800;color:#7c3aed;margin-top:8px;">₹${Number(aiData.estimated_bill).toFixed(2)}</div>
-          <div style="font-size:.75rem;color:${diffColor};margin-top:4px;font-weight:600;">${diffIcon} ${Math.abs(aiDiff)}% ${aiDiff > 0 ? 'higher' : 'lower'}</div>
+          <div style="font-size:.75rem;color:${diffColor};margin-top:4px;font-weight:600;">${diffIcon} ${Math.abs(aiDiff)}% ${diffLabel}</div>
         </div>
       </div>
     </div>`;
@@ -889,11 +889,17 @@ async function calc(){
   const billDiff = nextBill - thisBill;
   const billDiffPct = thisBill ? (billDiff / thisBill) * 100 : 0;
 
+  let diffLabel = "change";
+  let diffColor = "#4b5563";
+  if (billDiff > 0) {
+    diffLabel = "increase";
+    diffColor = "#b91c1c";
+  } else if (billDiff < 0) {
+    diffLabel = "savings";
+    diffColor = "#15803d";
+  }
   const unitDiff = nextUnits - thisUnits;
   const unitDiffPct = thisUnits ? (unitDiff / thisUnits) * 100 : 0;
-
-  const diffLabel = billDiff >= 0 ? "increase" : "savings";
-  const diffColor = billDiff >= 0 ? "#b91c1c" : "#15803d";
 
   const ic = {d:"🚨", w:"⚠️", s:"✅", i:"ℹ️"};
   const cl = {d:"alt-d", w:"alt-w", s:"alt-s", i:"alt-inf"};
@@ -918,7 +924,7 @@ async function calc(){
     </div>
     <div style="margin-top:12px;padding:12px 14px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;">
       <div style="font-size:.8rem;font-weight:600;color:${diffColor};">
-        ${billDiff >= 0 ? "📈 Possible Increase" : "📉 Possible Savings"}
+        ${billDiff > 0 ? "📈 Possible Increase" : billDiff < 0 ? "📉 Possible Savings" : "➖ No Change Expected"}
       </div>
       <div style="font-size:.85rem;margin-top:4px;color:#4b5563;">
         Bill difference:
