@@ -880,32 +880,106 @@ async function calc(){
   document.getElementById('sumC').innerHTML = h;
 
   // ============ ALERTS ============
-  const al = [];
-  const hC = S.apps.filter(a => ((a.w * a.q * a.h) / 1000) * 30 > 50);
-  if(hC.length) al.push({t:'w', ti:'⚡ High Power Appliances', ms: hC.map(a => a.an).join(', ') + ' use significant energy.'});
-  if(S.limit > 0 && mKwh > S.limit) al.push({t:'d', ti:'🚨 Limit Exceeded!', ms: `${mKwh.toFixed(1)} kWh exceeds your ${S.limit} kWh limit!`});
-  if(mu <= 100 && S.apps.length > 0) al.push({t:'s', ti:'✅ Free Tier!', ms: `${mu} units in free tier (0-100). Bill: ₹0!`});
-  if(tb.tot > 2000) al.push({t:'w', ti:'💰 High Bill', ms: `₹${tb.tot.toFixed(2)} is high. Check energy tips.`});
-  if(S.apps.some(a => a.aid === 'ac') && S.season === 'summer') al.push({t:'i', ti:'❄️ Summer AC Tip', ms: 'AC uses 40% energy. Set 24-26°C + ceiling fan = 30% savings.'});
-  if(!S.season) al.push({t:'i', ti:'📅 Season Info', ms: 'Select season for accurate estimates.'});
-  if(S.apps.some(a => a.tid === 'inc60' || a.tid === 'inc100' || a.tid === 'crt')) al.push({t:'w', ti:'🔦 Old Tech', ms: 'Incandescent uses 80% more. Switch to LED!'});
-  if(mKwh > 0 && mKwh < 150) al.push({t:'s', ti:'✅ Efficient!', ms: `${mKwh.toFixed(1)} kWh/month is very efficient!`});
 
-  const ic = {d:'🚨', w:'⚠️', s:'✅', i:'ℹ️'};
-  const cl = {d:'alt-d', w:'alt-w', s:'alt-s', i:'alt-inf'};
-  let ah = `<div class="cd"><h3>Alerts & Recommendations</h3><div style="margin-top:18px;">`;
-  if(!al.length) ah += `<div class="empty" style="padding:30px;"><div class="ei">✅</div><div class="et">All Good!</div><div class="em">Your consumption looks reasonable.</div></div>`;
-  else for(const a of al) ah += `<div class="alt ${cl[a.t]}"><div class="alt-i">${ic[a.t]}</div><div><div class="alt-t">${a.ti}</div><p class="alt-m">${a.ms}</p></div></div>`;
+  const thisBill = Number(aiData.estimated_bill || 0);
+  const nextBill = Number(aiData.next_month_bill || 0);
+  const billDiff = nextBill - thisBill;
+  const billDiffPct = thisBill ? (billDiff / thisBill) * 100 : 0;
+  const diffLabel = billDiff >= 0 ? "increase" : "savings";
+  const diffColor = billDiff >= 0 ? "#b91c1c" : "#15803d";
+
+  const ic = {d:"🚨", w:"⚠️", s:"✅", i:"ℹ️"};
+  const cl = {d:"alt-d", w:"alt-w", s:"alt-s", i:"alt-inf"};
+
+  let ah = "";
+
+  // ---- Top comparison card: This vs Next month bill ----
+  ah += `<div class="cd cd-b">
+    <h3>Bill Comparison: This Month vs Next Month</h3>
+    <p class="ds">Based on your expected usage change of <strong>${S.usageChange || 0}%</strong>.</p>
+    <div style="margin-top:14px;display:grid;gap:12px;grid-template-columns:1fr 1fr;">
+      <div style="padding:14px;border-radius:10px;border:1px solid #bfdbfe;background:#eff6ff;">
+        <div style="font-size:.72rem;font-weight:600;color:#1d4ed8;text-transform:uppercase;letter-spacing:.5px;">This Month (AI)</div>
+        <div style="font-size:1.25rem;font-weight:800;color:#1e3a8a;margin-top:6px;">₹${thisBill.toFixed(2)}</div>
+      </div>
+      <div style="padding:14px;border-radius:10px;border:1px solid #facc15;background:#fef9c3;">
+        <div style="font-size:.72rem;font-weight:600;color:#92400e;text-transform:uppercase;letter-spacing:.5px;">Next Month (AI)</div>
+        <div style="font-size:1.25rem;font-weight:800;color:#b45309;margin-top:6px;">₹${nextBill.toFixed(2)}</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;padding:12px 14px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;">
+      <div style="font-size:.8rem;font-weight:600;color:${diffColor};">
+        ${billDiff >= 0 ? "📈 Possible Increase" : "📉 Possible Savings"}
+      </div>
+      <div style="font-size:.85rem;margin-top:4px;color:#4b5563;">
+        Difference: <strong style="color:${diffColor};">₹${Math.abs(billDiff).toFixed(2)} (${Math.abs(billDiffPct).toFixed(1)}% ${diffLabel})</strong>
+      </div>
+    </div>
+  </div>`;
+
+  // ---- Detailed alerts under the comparison ----
+  const al = [];
+
+  // High consumption (units)
+  if (aiData.monthly_units > 500) {
+    al.push({
+      t: "w",
+      ti: "⚡ High Consumption Detected",
+      ms: `AI predicts ${aiData.monthly_units.toFixed(0)} units/month. Consider reducing AC or heater usage.`
+    });
+  }
+
+  // Next month increase / savings
+  if (S.usageChange > 0 && nextBill > thisBill) {
+    al.push({
+      t: "d",
+      ti: "📈 Next Month Bill Increase",
+      ms: `Usage expected to increase by ${S.usageChange}%. Estimated bill may rise from ₹${thisBill.toFixed(0)} to ₹${nextBill.toFixed(0)}.`
+    });
+  } else if (S.usageChange < 0 && nextBill < thisBill) {
+    al.push({
+      t: "s",
+      ti: "💰 Expected Savings Next Month",
+      ms: `Reduced usage (${S.usageChange}%) may lower bill from ₹${thisBill.toFixed(0)} to ₹${nextBill.toFixed(0)}.`
+    });
+  }
+
+  // Free tier info
+  if (aiData.monthly_units <= 100) {
+    al.push({
+      t: "s",
+      ti: "✅ Free Electricity Tier",
+      ms: `AI predicts within 0–100 units. Electricity bill remains FREE.`
+    });
+  }
+
+  // Seasonal alert (AC in summer)
+  if (S.season === "summer" && S.apps.some(a => a.aid === "ac")) {
+    al.push({
+      t: "w",
+      ti: "❄️ Summer AC Usage",
+      ms: "AC usage increases electricity by 30–40%. Set temperature to 24–26°C and use a fan for savings."
+    });
+  }
+
+  ah += `<div class="cd" style="margin-top:20px;"><h3>Alerts & Recommendations</h3><div style="margin-top:18px;">`;
+  if (!al.length) {
+    ah += `<div class="empty" style="padding:30px;"><div class="ei">✅</div><div class="et">All Good!</div><div class="em">Your consumption looks reasonable.</div></div>`;
+  } else {
+    for (const a of al) {
+      ah += `<div class="alt ${cl[a.t]}"><div class="alt-i">${ic[a.t]}</div><div><div class="alt-t">${a.ti}</div><p class="alt-m">${a.ms}</p></div></div>`;
+    }
+  }
   ah += `</div></div>`;
-  
-  // Quick Stats
-  if(S.apps.length > 0) {
+
+  // Quick Stats (unchanged)
+  if (S.apps.length > 0) {
     ah += `<div class="cd cd-p" style="margin-top:20px;">
       <h3>Quick Statistics</h3>
       <div class="qg">
         <div class="qb"><div class="ql">Daily Cost</div><div class="qv">₹${(tb.tot/30).toFixed(2)}</div></div>
         <div class="qb"><div class="ql">Monthly</div><div class="qv">₹${tb.tot.toFixed(2)}</div></div>
-        <div class="qb"><div class="ql">Yearly Est.</div><div class="qv">₹${(tb.tot*12).toLocaleString('en-IN')}</div></div>
+        <div class="qb"><div class="ql">Yearly Est.</div><div class="qv">₹${(tb.tot*12).toLocaleString("en-IN")}</div></div>
         <div class="qb"><div class="ql">Total Items</div><div class="qv">${S.apps.reduce((s,a) => s+a.q, 0)}</div></div>
         <div class="qb"><div class="ql">Appliances</div><div class="qv">${S.apps.length}</div></div>
         <div class="qb"><div class="ql">Avg Usage</div><div class="qv">${(mKwh/S.apps.length).toFixed(1)} kWh</div></div>
@@ -913,7 +987,7 @@ async function calc(){
     </div>`;
   }
 
-  document.getElementById('altC').innerHTML = ah;
+  document.getElementById("altC").innerHTML = ah;
 }
 
 function formatAssistantMessage(text){
