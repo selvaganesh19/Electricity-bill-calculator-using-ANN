@@ -582,24 +582,36 @@ async function predictFromAI(appliances, usageChangePercent = 0) {
     if (!appliances || !Array.isArray(appliances) || appliances.length === 0) {
       return null;
     }
+
     const payload = {
       bhk: parseInt(S.house.match(/\d+/) || 2),
       usage_change_percent: usageChangePercent,
-      appliances: appliances.map(a => ({watt: a.w, quantity: a.q, hours: a.h}))
+      appliances: appliances.map(a => ({
+        watt: a.w,
+        quantity: a.q,
+        hours: a.h
+      }))
     };
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
-    const response = await fetch('http://127.0.0.1:8000/predict', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+
+    const response = await fetch("http://127.0.0.1:8000/predict", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
       body: JSON.stringify(payload),
       signal: controller.signal
     });
+
     clearTimeout(timeoutId);
-    if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+    if (!response.ok) {
+      throw new Error("Predict API error: " + response.status);
+    }
+
     return await response.json();
   } catch (error) {
-    console.error('AI prediction failed:', error.message);
+    console.error("AI prediction failed:", error);
     return null;
   }
 }
@@ -716,8 +728,8 @@ async function calc(){
   const ov = S.limit > 0 && mKwh > S.limit;
   const sd = SEASONS.find(s => s.id === S.season);
 
-  // Get AI prediction
-  let aiData = await predictFromAI(S.apps);
+  // Get AI prediction (includes next‑month usage change)
+  let aiData = await predictFromAI(S.apps, S.usageChange || 0);
 
   // 🚨 backend OFF => stop all manual rendering
   const aiOk =
