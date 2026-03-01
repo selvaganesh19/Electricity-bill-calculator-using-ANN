@@ -717,7 +717,7 @@ async function calc(){
     return;
   }
 
-  // Calculate variables
+  // --- Base manual calculation on frontend ---
   S.rate = parseFloat(document.getElementById('iR').value) || 5;
   S.limit = parseFloat(document.getElementById('iL').value) || 0;
   const mt = SEASONS.find(s => s.id === S.season)?.m || 1;
@@ -728,88 +728,109 @@ async function calc(){
   const ov = S.limit > 0 && mKwh > S.limit;
   const sd = SEASONS.find(s => s.id === S.season);
 
-  // Get AI prediction (includes next‑month usage change)
+  // --- AI prediction from backend (now structured) ---
   let aiData = await predictFromAI(S.apps, S.usageChange || 0);
 
-  // 🚨 backend OFF => stop all manual rendering
   const aiOk =
     aiData &&
-    Number.isFinite(Number(aiData.monthly_units)) &&
-    Number.isFinite(Number(aiData.estimated_bill));
+    aiData.ai_prediction &&
+    Number.isFinite(Number(aiData.ai_prediction.monthly_units)) &&
+    Number.isFinite(Number(aiData.ai_prediction.estimated_bill));
 
   if (!aiOk) {
     showBackendDisconnectedUI();
     return;
   }
-
   setAIBackendStatus(true);
+
+  const man = aiData.manual || {};
+  const ai  = aiData.ai_prediction || {};
+  const next = aiData.next_month || {};
+  const cmp  = aiData.comparison || {};
 
   let h = '';
 
-  // AI Prediction Card
+  // --------- AI Prediction Card ---------
   {
-    const aiDiff = mKwh > 0 ? ((aiData.monthly_units - mKwh) / mKwh * 100).toFixed(1) : "0.0";
-    const diffColor = aiDiff > 0 ? '#dc2626' : aiDiff < 0 ? '#059669' : '#4b5563';
-    const diffIcon = aiDiff > 0 ? '⬆️' : aiDiff < 0 ? '⬇️' : '➖';
+    const baseUnits = Number(man.monthly_units || mKwh || 0);
+    const aiUnits = Number(ai.monthly_units || 0);
+    const aiDiff = baseUnits > 0 ? ((aiUnits - baseUnits) / baseUnits * 100).toFixed(1) : "0.0";
+    const numDiff = parseFloat(aiDiff);
+    const diffColor = numDiff > 0 ? '#dc2626' : numDiff < 0 ? '#059669' : '#4b5563';
+    const diffIcon  = numDiff > 0 ? '⬆️' : numDiff < 0 ? '⬇️' : '➖';
     let aiLabel = 'change';
-    if (aiDiff > 0) aiLabel = 'higher';
-    else if (aiDiff < 0) aiLabel = 'lower';
+    if (numDiff > 0) aiLabel = 'higher';
+    else if (numDiff < 0) aiLabel = 'lower';
 
     h += `<div class="cd" style="border-color:#ddd6fe;background:linear-gradient(135deg,#f5f0ff 0%,#faf8ff 100%);margin-bottom:20px;border:2px solid #a78bfa;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
         <span style="font-size:1.2rem;">🤖</span>
         <h3 style="color:#5b21b6;">AI Model Prediction</h3>
       </div>
-      <p class="ds" style="color:#7c6a9a;">Neural network trained on real household data</p>
+      <p class="ds" style="color:#7c6a9a;">Neural network powered hybrid energy estimation</p>
       <div style="margin-top:16px;display:grid;gap:14px;grid-template-columns:1fr 1fr;">
         <div style="padding:16px;border:1px solid #c4b5fd;border-radius:10px;background:#fff;">
           <div style="font-size:.72rem;font-weight:600;color:#5b21b6;text-transform:uppercase;letter-spacing:.5px;">📊 AI Monthly Units</div>
-          <div style="font-size:1.3rem;font-weight:800;color:#7c3aed;margin-top:8px;">${Number(aiData.monthly_units).toFixed(2)} kWh</div>
-          <div style="font-size:.75rem;color:#9ca3af;margin-top:4px;">AI Calculated Consumption</div>
+          <div style="font-size:1.3rem;font-weight:800;color:#7c3aed;margin-top:8px;">${Number(ai.monthly_units || 0).toFixed(2)} kWh</div>
+          <div style="font-size:.75rem;color:#9ca3af;margin-top:4px;">AI adjusted consumption</div>
         </div>
         <div style="padding:16px;border:1px solid #c4b5fd;border-radius:10px;background:#fff;">
           <div style="font-size:.72rem;font-weight:600;color:#5b21b6;text-transform:uppercase;letter-spacing:.5px;">💰 AI Estimated Bill</div>
-          <div style="font-size:1.3rem;font-weight:800;color:#7c3aed;margin-top:8px;">₹${Number(aiData.estimated_bill).toFixed(2)}</div>
+          <div style="font-size:1.3rem;font-weight:800;color:#7c3aed;margin-top:8px;">₹${Number(ai.estimated_bill || 0).toFixed(2)}</div>
           <div style="font-size:.75rem;color:${diffColor};margin-top:4px;font-weight:600;">
-            ${diffIcon} ${Math.abs(aiDiff)}% ${aiLabel}
+            ${diffIcon} ${Math.abs(numDiff).toFixed(1)}% ${aiLabel} vs manual
           </div>
         </div>
       </div>
     </div>`;
   }
 
-  // =====================================
-  // NEXT MONTH FORECAST CARD
-  // =====================================
+  // --------- 1) Manual vs AI Comparison ---------
   h += `
-<div class="cd cd-y" style="margin-top:20px;">
-  <h3>🔮 Next Month Forecast</h3>
+<div class="cd cd-p" style="margin-top:20px;">
+  <h3>📊 Manual vs AI Comparison</h3>
+  <table class="tt" style="margin-top:12px;">
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>Units</th>
+        <th>Bill</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Manual Calculation</td>
+        <td>${Number(man.monthly_units || mKwh).toFixed(2)} kWh</td>
+        <td>₹${Number(man.bill || tb.tot).toFixed(2)}</td>
+      </tr>
+      <tr class="hl">
+        <td>AI Prediction</td>
+        <td>${Number(ai.monthly_units || 0).toFixed(2)} kWh</td>
+        <td>₹${Number(ai.estimated_bill || 0).toFixed(2)}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;">
-    
-    <div style="padding:16px;background:#fff;border-radius:10px;border:1px solid #fde68a;">
-      <div style="font-size:.75rem;font-weight:600;color:#92400e;">
-        Expected Units
-      </div>
-      <div style="font-size:1.3rem;font-weight:800;color:#b45309;margin-top:6px;">
-        ${aiData.next_month_units.toFixed(2)} kWh
-      </div>
+  // --------- 2) Current Month vs Next Month ---------
+  h += `
+<div class="cd cd-y">
+  <h3>📅 Current vs Next Month</h3>
+  <div class="g2" style="margin-top:14px;">
+    <div class="qb">
+      <div class="ql">Current Bill</div>
+      <div class="qv">₹${Number(ai.estimated_bill || 0).toFixed(0)}</div>
     </div>
-
-    <div style="padding:16px;background:#fff;border-radius:10px;border:1px solid #fde68a;">
-      <div style="font-size:.75rem;font-weight:600;color:#92400e;">
-        Next Month Bill
-      </div>
-      <div style="font-size:1.3rem;font-weight:800;color:#b45309;margin-top:6px;">
-        ₹${aiData.next_month_bill.toFixed(2)}
-      </div>
+    <div class="qb">
+      <div class="ql">Next Month Bill</div>
+      <div class="qv">₹${Number(next.bill || 0).toFixed(0)}</div>
     </div>
-
   </div>
 </div>
 `;
 
-  // Stats Cards
+  // --------- Core Stats Cards (existing) ---------
   h += `<div class="g4" style="margin-top:20px;">
     <div class="sc cd-g">
       <div class="tp"><span class="lb">Monthly Consumption</span><span style="font-size:1.2rem;">⚡</span></div>
@@ -833,7 +854,7 @@ async function calc(){
     </div>
   </div>`;
 
-  // TNEB Bill Breakdown
+  // --------- TNEB Bill Breakdown ---------
   h += `<div class="cd cd-b" style="margin-top:20px;">
     <h3>TNEB Bill Breakdown</h3>
     <div style="margin-top:14px;">`;
@@ -848,8 +869,11 @@ async function calc(){
     <span class="v">₹${tb.tot.toFixed(2)}</span>
   </div></div></div>`;
 
-  // Appliance Usage
-  const sorted = S.apps.map(a => ({...a, mk: ((a.w * a.q * a.h) / 1000) * 30 * mt})).sort((a, b) => b.mk - a.mk);
+  // --------- Appliance Usage Breakdown ---------
+  const sorted = S.apps
+    .map(a => ({...a, mk: ((a.w * a.q * a.h) / 1000) * 30 * mt}))
+    .sort((a, b) => b.mk - a.mk);
+
   h += `<div class="cd"><h3>Appliance Usage Breakdown</h3><div style="margin-top:14px;">`;
   for(const a of sorted) {
     const pc = mKwh > 0 ? (a.mk / mKwh) * 100 : 0;
@@ -867,7 +891,51 @@ async function calc(){
   }
   h += `</div></div>`;
 
-  // Energy Saving Tips
+  // --------- 3) Highest Energy Consumer ---------
+  if (sorted.length > 0 && mKwh > 0) {
+    const top = sorted[0];
+    h += `
+<div class="cd">
+  <h3>🏆 Highest Energy Consumer</h3>
+  <p style="margin-top:10px;">
+    ${top.e} <strong>${top.an}</strong>
+    consumes <strong>${top.mk.toFixed(1)} kWh/month</strong>
+    (${((top.mk/mKwh)*100).toFixed(1)}% of total usage)
+  </p>
+</div>
+`;
+  }
+
+  // --------- 4) Energy Efficiency Score ---------
+  const score = Number(cmp.efficiency_score || 100);
+  h += `
+<div class="cd cd-g">
+  <h3>🌱 Energy Efficiency Score</h3>
+  <div style="font-size:2rem;font-weight:900;color:#059669;">
+    ${score}/100
+  </div>
+  <p class="ds">
+    Higher score means better electricity efficiency.
+  </p>
+</div>
+`;
+
+  // --------- 5) Savings Comparison (Current vs Next) ---------
+  const savings = Number(cmp.expected_savings || 0);
+  if (savings > 0) {
+    h += `
+<div class="cd cd-g">
+  <h3>💰 Expected Savings</h3>
+  <p>
+    You may save approximately
+    <strong>₹${savings.toFixed(0)}</strong>
+    next month.
+  </p>
+</div>
+`;
+  }
+
+  // --------- Energy Saving Tips (unchanged) ---------
   h += `<div class="cd cd-g" style="margin-top:20px;">
     <h3 style="color:#065f46;">💡 Energy Saving Tips</h3>
     <div class="tg">`;
@@ -885,12 +953,12 @@ async function calc(){
   h += `</div></div>`;
   document.getElementById('sumC').innerHTML = h;
 
-  // ============ ALERTS ============
+  // ================== ALERTS (uses structured aiData) ==================
 
-  const thisBill = Number(aiData.estimated_bill || 0);
-  const nextBill = Number(aiData.next_month_bill || 0);
-  const thisUnits = Number(aiData.monthly_units || 0);
-  const nextUnits = Number(aiData.next_month_units || 0);
+  const thisBill  = Number(ai.estimated_bill || 0);
+  const nextBill  = Number(next.bill || 0);
+  const thisUnits = Number(ai.monthly_units || 0);
+  const nextUnits = Number(next.units || 0);
 
   const billDiff = nextBill - thisBill;
   const billDiffPct = thisBill ? (billDiff / thisBill) * 100 : 0;
@@ -912,7 +980,7 @@ async function calc(){
 
   let ah = "";
 
-  // ---- Top comparison card: This Month vs Next month bill & units ----
+  // Top comparison card
   ah += `<div class="cd cd-b">
     <h3>Bill & Units Comparison: This Month vs Next Month</h3>
     <p class="ds">Based on your expected usage change of <strong>${S.usageChange || 0}%</strong>.</p>
@@ -943,15 +1011,15 @@ async function calc(){
     </div>
   </div>`;
 
-  // ---- Your existing SMART AI alert list (al[], Quick Stats, etc.) stays below this ----
+  // SMART alerts
   const al = [];
 
-  // High consumption (units)
-  if (aiData.monthly_units > 500) {
+  // High consumption
+  if (thisUnits > 500) {
     al.push({
       t: "w",
       ti: "⚡ High Consumption Detected",
-      ms: `AI predicts ${aiData.monthly_units.toFixed(0)} units/month. Consider reducing AC or heater usage.`
+      ms: `AI predicts ${thisUnits.toFixed(0)} units/month. Consider reducing AC or heater usage.`
     });
   }
 
@@ -971,7 +1039,7 @@ async function calc(){
   }
 
   // Free tier info
-  if (aiData.monthly_units <= 100) {
+  if (thisUnits <= 100) {
     al.push({
       t: "s",
       ti: "✅ Free Electricity Tier",
@@ -979,7 +1047,7 @@ async function calc(){
     });
   }
 
-  // Seasonal alert (AC in summer)
+  // Seasonal alert
   if (S.season === "summer" && S.apps.some(a => a.aid === "ac")) {
     al.push({
       t: "w",
@@ -998,7 +1066,7 @@ async function calc(){
   }
   ah += `</div></div>`;
 
-  // Quick Stats (unchanged)
+  // Quick Stats (existing)
   if (S.apps.length > 0) {
     ah += `<div class="cd cd-p" style="margin-top:20px;">
       <h3>Quick Statistics</h3>

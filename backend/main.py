@@ -214,15 +214,43 @@ def predict(data: PredictionInput):
         # RESPONSE
         # --------------------------
         return {
-            "manual_daily_units": round(manual_daily, 2),
-            "daily_units": round(daily_units, 2),
-            "monthly_units": round(monthly_units, 2),
-            "estimated_bill": round(bill, 2),
 
-            "next_month_units": round(next_month_units, 2),
-            "next_month_bill": round(next_month_bill, 2),
+            # ===============================
+            # MANUAL CALCULATION
+            # ===============================
+            "manual": {
+                "daily_units": round(manual_daily, 2),
+                "monthly_units": round(manual_monthly_units, 2),
+                "bill": round(manual_bill, 2),
+            },
 
-            "ai_adjustment_%": round(ai_correction * 100, 2)
+            # ===============================
+            # AI CURRENT MONTH
+            # ===============================
+            "ai_prediction": {
+                "daily_units": round(daily_units, 2),
+                "monthly_units": round(monthly_units, 2),
+                "estimated_bill": round(bill, 2),
+                "ai_adjustment_percent": round(ai_correction * 100, 2),
+            },
+
+            # ===============================
+            # NEXT MONTH FORECAST
+            # ===============================
+            "next_month": {
+                "units": round(next_month_units, 2),
+                "bill": round(next_month_bill, 2),
+                "usage_change_percent": data.usage_change_percent,
+            },
+
+            # ===============================
+            # COMPARISON ANALYTICS
+            # ===============================
+            "comparison": {
+                "difference_percent": round(difference_percent, 2),
+                "expected_savings": round(expected_savings, 2),
+                "efficiency_score": efficiency_score,
+            },
         }
 
     except Exception as e:
