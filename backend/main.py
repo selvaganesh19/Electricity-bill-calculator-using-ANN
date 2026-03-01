@@ -196,19 +196,16 @@ def predict(data: PredictionInput):
         if bill <= 0:
             bill = monthly_units * 2.25
 
-        # ==================================================
-        # ⭐ NEXT MONTH PREDICTION
-        # ==================================================
-        change_factor = 1 + (data.usage_change_percent / 100)
-
-        next_month_units = monthly_units * change_factor
+        # --------------------------
+        # Next month forecast using usage_change_percent
+        # --------------------------
+        # usage_change_percent = +15  -> 15% increase
+        # usage_change_percent = -10 -> 10% decrease
+        next_month_units = monthly_units * (1 + data.usage_change_percent / 100.0)
         next_month_bill = tneb_bill(next_month_units)
 
-        if next_month_bill <= 0:
-            next_month_bill = next_month_units * 2.25
-
         # --------------------------
-        # RESPONSE
+        # Response for current frontend
         # --------------------------
         return {
             "manual_daily_units": round(manual_daily, 2),
