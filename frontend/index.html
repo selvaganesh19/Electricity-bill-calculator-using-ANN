@@ -577,13 +577,14 @@ function tneb(u){
 // ============================================================
 // AI PREDICTION FROM BACKEND
 // ============================================================
-async function predictFromAI(appliances) {
+async function predictFromAI(appliances, usageChangePercent = 0) {
   try {
     if (!appliances || !Array.isArray(appliances) || appliances.length === 0) {
       return null;
     }
     const payload = {
       bhk: parseInt(S.house.match(/\d+/) || 2),
+      usage_change_percent: usageChangePercent,
       appliances: appliances.map(a => ({watt: a.w, quantity: a.q, hours: a.h}))
     };
     const controller = new AbortController();
