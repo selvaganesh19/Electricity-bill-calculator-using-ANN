@@ -366,6 +366,11 @@
             <input type="number" id="iL" value="0" min="0" onchange="calc()"/>
             <p class="sh">Set to 0 for no limit. Get alerts when you exceed this limit.</p>
           </div>
+          <div>
+            <label class="sl" style="color:#059669;">Expected Usage Change Next Month (%)</label>
+            <input type="number" id="iUC" value="0" step="1" onchange="onUC()"/>
+            <p class="sh">Positive for increase (e.g. 15), negative for savings (e.g. -10).</p>
+          </div>
         </div>
       </div>
       <div class="cd cd-p s2">
@@ -489,7 +494,7 @@ const TIPS={
   gen:["Switch off appliances at the wall when not in use","Use 5-star rated appliances for maximum savings","Schedule high-power tasks during off-peak hours","Regular maintenance extends appliance life and efficiency"],
 };
 
-let S={house:"2bhk",season:"",rate:5,limit:0,apps:[],nid:1};
+let S={house:"2bhk",season:"",rate:5,limit:0,usageChange:0,apps:[],nid:1};
 
 let aiOfflineNotified = false;
 
@@ -683,6 +688,11 @@ function onSC(){
     const ds={summer:'Higher usage due to AC and cooling needs',monsoon:'Lower cooling needs, moderate usage',winter:'Lowest cooling needs, water heater usage rises',spring:'Average consumption period'}[S.season];
     inf.style.display='block';inf.innerHTML=`<p>Season multiplier: <strong>${s.m}x</strong></p><p class="sm">${ds}</p>`;
   }else{inf.style.display='none';}
+  calc();
+}
+
+function onUC(){
+  S.usageChange = parseFloat(document.getElementById('iUC').value) || 0;
   calc();
 }
 
