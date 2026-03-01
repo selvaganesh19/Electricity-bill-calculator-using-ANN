@@ -161,10 +161,35 @@ def predict(data: PredictionInput):
 
         if manual_daily <= 0:
             return {
+                "manual_daily_units": 0,
                 "daily_units": 0,
                 "monthly_units": 0,
                 "estimated_bill": 0,
-                "next_month_bill": 0
+                "next_month_units": 0,
+                "next_month_bill": 0,
+                "ai_adjustment_%": 0,
+
+                "manual": {
+                    "daily_units": 0,
+                    "monthly_units": 0,
+                    "bill": 0,
+                },
+                "ai_prediction": {
+                    "daily_units": 0,
+                    "monthly_units": 0,
+                    "estimated_bill": 0,
+                    "ai_adjustment_percent": 0,
+                },
+                "next_month": {
+                    "units": 0,
+                    "bill": 0,
+                    "usage_change_percent": data.usage_change_percent,
+                },
+                "comparison": {
+                    "difference_percent": 0,
+                    "expected_savings": 0,
+                    "efficiency_score": 100,
+                },
             }
 
         # --------------------------
@@ -175,9 +200,7 @@ def predict(data: PredictionInput):
         # --------------------------
         # AI Prediction
         # --------------------------
-        raw_ai = float(
-            MODEL.predict(X_scaled, verbose=0)[0][0]
-        )
+        raw_ai = float(MODEL.predict(X_scaled, verbose=0)[0][0])
 
         ai_correction = np.tanh(raw_ai) * 0.15
 
@@ -210,19 +233,80 @@ def predict(data: PredictionInput):
         if next_month_bill <= 0:
             next_month_bill = next_month_units * 2.25
 
+        # =====================================
+        # COMPARISON METRICS
+        # =====================================
+        manual_monthly_units = manual_daily * 30
+        manual_bill = tneb_bill(manual_monthly_units)
+
+        # AI vs Manual difference (%)
+        difference_percent = (
+            (monthly_units - manual_monthly_units)
+            / max(manual_monthly_units, 1)
+        ) * 100
+
+        # Expected savings (current vs next month)
+        expected_savings = bill - next_month_bill
+
+        # Efficiency score (0–100)
+        efficiency_score = 100
+        if monthly_units > 600:
+            efficiency_score -= 40
+        elif monthly_units > 400:
+            efficiency_score -= 25
+        elif monthly_units > 250:
+            efficiency_score -= 10
+        efficiency_score = max(0, efficiency_score)
+
         # --------------------------
         # RESPONSE
         # --------------------------
         return {
+            # legacy flat fields (frontend already uses these)
             "manual_daily_units": round(manual_daily, 2),
             "daily_units": round(daily_units, 2),
             "monthly_units": round(monthly_units, 2),
             "estimated_bill": round(bill, 2),
-
             "next_month_units": round(next_month_units, 2),
             "next_month_bill": round(next_month_bill, 2),
+            "ai_adjustment_%": round(ai_correction * 100, 2),
 
-            "ai_adjustment_%": round(ai_correction * 100, 2)
+            # ===============================
+            # MANUAL CALCULATION
+            # ===============================
+            "manual": {
+                "daily_units": round(manual_daily, 2),
+                "monthly_units": round(manual_monthly_units, 2),
+                "bill": round(manual_bill, 2),
+            },
+
+            # ===============================
+            # AI CURRENT MONTH
+            # ===============================
+            "ai_prediction": {
+                "daily_units": round(daily_units, 2),
+                "monthly_units": round(monthly_units, 2),
+                "estimated_bill": round(bill, 2),
+                "ai_adjustment_percent": round(ai_correction * 100, 2),
+            },
+
+            # ===============================
+            # NEXT MONTH FORECAST
+            # ===============================
+            "next_month": {
+                "units": round(next_month_units, 2),
+                "bill": round(next_month_bill, 2),
+                "usage_change_percent": data.usage_change_percent,
+            },
+
+            # ===============================
+            # COMPARISON ANALYTICS
+            # ===============================
+            "comparison": {
+                "difference_percent": round(difference_percent, 2),
+                "expected_savings": round(expected_savings, 2),
+                "efficiency_score": efficiency_score,
+            },
         }
 
     except Exception as e:
