@@ -161,10 +161,27 @@ def predict(data: PredictionInput):
 
         if manual_daily <= 0:
             return {
-                "daily_units": 0,
-                "monthly_units": 0,
-                "estimated_bill": 0,
-                "next_month_bill": 0
+                "manual": {
+                    "daily_units": 0.0,
+                    "monthly_units": 0.0,
+                    "bill": 0.0,
+                },
+                "ai_prediction": {
+                    "daily_units": 0.0,
+                    "monthly_units": 0.0,
+                    "estimated_bill": 0.0,
+                    "ai_adjustment_percent": 0.0,
+                },
+                "next_month": {
+                    "units": 0.0,
+                    "bill": 0.0,
+                    "usage_change_percent": data.usage_change_percent,
+                },
+                "comparison": {
+                    "difference_percent": 0.0,
+                    "expected_savings": 0.0,
+                    "efficiency_score": 100,
+                },
             }
 
         # --------------------------
@@ -209,6 +226,28 @@ def predict(data: PredictionInput):
 
         if next_month_bill <= 0:
             next_month_bill = next_month_units * 2.25
+
+        # =====================================
+        # COMPARISON METRICS
+        # =====================================
+        manual_monthly_units = manual_daily * 30
+        manual_bill = tneb_bill(manual_monthly_units)
+
+        difference_percent = (
+            (monthly_units - manual_monthly_units)
+            / max(manual_monthly_units, 1)
+        ) * 100
+
+        expected_savings = bill - next_month_bill
+
+        efficiency_score = 100
+        if monthly_units > 600:
+            efficiency_score -= 40
+        elif monthly_units > 400:
+            efficiency_score -= 25
+        elif monthly_units > 250:
+            efficiency_score -= 10
+        efficiency_score = max(0, efficiency_score)
 
         # --------------------------
         # RESPONSE
