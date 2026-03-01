@@ -883,8 +883,15 @@ async function calc(){
 
   const thisBill = Number(aiData.estimated_bill || 0);
   const nextBill = Number(aiData.next_month_bill || 0);
+  const thisUnits = Number(aiData.monthly_units || 0);
+  const nextUnits = Number(aiData.next_month_units || 0);
+
   const billDiff = nextBill - thisBill;
   const billDiffPct = thisBill ? (billDiff / thisBill) * 100 : 0;
+
+  const unitDiff = nextUnits - thisUnits;
+  const unitDiffPct = thisUnits ? (unitDiff / thisUnits) * 100 : 0;
+
   const diffLabel = billDiff >= 0 ? "increase" : "savings";
   const diffColor = billDiff >= 0 ? "#b91c1c" : "#15803d";
 
@@ -893,18 +900,20 @@ async function calc(){
 
   let ah = "";
 
-  // ---- Top comparison card: This vs Next month bill ----
+  // ---- Top comparison card: This vs Next month bill & units ----
   ah += `<div class="cd cd-b">
-    <h3>Bill Comparison: This Month vs Next Month</h3>
+    <h3>Bill & Units Comparison: This Month vs Next Month</h3>
     <p class="ds">Based on your expected usage change of <strong>${S.usageChange || 0}%</strong>.</p>
     <div style="margin-top:14px;display:grid;gap:12px;grid-template-columns:1fr 1fr;">
       <div style="padding:14px;border-radius:10px;border:1px solid #bfdbfe;background:#eff6ff;">
         <div style="font-size:.72rem;font-weight:600;color:#1d4ed8;text-transform:uppercase;letter-spacing:.5px;">This Month (AI)</div>
-        <div style="font-size:1.25rem;font-weight:800;color:#1e3a8a;margin-top:6px;">₹${thisBill.toFixed(2)}</div>
+        <div style="font-size:1.2rem;font-weight:800;color:#1e3a8a;margin-top:6px;">₹${thisBill.toFixed(2)}</div>
+        <div style="font-size:.8rem;color:#4b5563;margin-top:4px;">${thisUnits.toFixed(0)} units</div>
       </div>
       <div style="padding:14px;border-radius:10px;border:1px solid #facc15;background:#fef9c3;">
         <div style="font-size:.72rem;font-weight:600;color:#92400e;text-transform:uppercase;letter-spacing:.5px;">Next Month (AI)</div>
-        <div style="font-size:1.25rem;font-weight:800;color:#b45309;margin-top:6px;">₹${nextBill.toFixed(2)}</div>
+        <div style="font-size:1.2rem;font-weight:800;color:#b45309;margin-top:6px;">₹${nextBill.toFixed(2)}</div>
+        <div style="font-size:.8rem;color:#4b5563;margin-top:4px;">${nextUnits.toFixed(0)} units</div>
       </div>
     </div>
     <div style="margin-top:12px;padding:12px 14px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;">
@@ -912,12 +921,17 @@ async function calc(){
         ${billDiff >= 0 ? "📈 Possible Increase" : "📉 Possible Savings"}
       </div>
       <div style="font-size:.85rem;margin-top:4px;color:#4b5563;">
-        Difference: <strong style="color:${diffColor};">₹${Math.abs(billDiff).toFixed(2)} (${Math.abs(billDiffPct).toFixed(1)}% ${diffLabel})</strong>
+        Bill difference:
+        <strong style="color:${diffColor};">₹${Math.abs(billDiff).toFixed(2)} (${Math.abs(billDiffPct).toFixed(1)}% ${diffLabel})</strong>
+      </div>
+      <div style="font-size:.85rem;margin-top:2px;color:#4b5563;">
+        Units difference:
+        <strong style="color:${diffColor};">${Math.abs(unitDiff).toFixed(0)} units (${Math.abs(unitDiffPct).toFixed(1)}%)</strong>
       </div>
     </div>
   </div>`;
 
-  // ---- Detailed alerts under the comparison ----
+  // ---- Your existing SMART AI alert list (al[], Quick Stats, etc.) stays below this ----
   const al = [];
 
   // High consumption (units)
