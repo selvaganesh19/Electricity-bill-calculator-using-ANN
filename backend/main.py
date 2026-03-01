@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import httpx
 from dotenv import load_dotenv
+import pandas as pd  # 👈 add this
 
 # ==============================
 # LOAD ENV
@@ -152,8 +153,10 @@ def predict(data: PredictionInput):
         # Feature creation
         # --------------------------
         X = create_features(data.appliances)
-        kitchen, laundry, heavy, _ = X[0]
+        # wrap with feature names to match how SCALER was trained
+        X_df = pd.DataFrame(X, columns=SCALER.feature_names_in_)
 
+        kitchen, laundry, heavy, _ = X[0]
         manual_daily = kitchen + laundry + heavy
 
         if manual_daily <= 0:
@@ -167,7 +170,7 @@ def predict(data: PredictionInput):
         # --------------------------
         # Scale
         # --------------------------
-        X_scaled = SCALER.transform(X)
+        X_scaled = SCALER.transform(X_df)
 
         # --------------------------
         # AI Prediction
