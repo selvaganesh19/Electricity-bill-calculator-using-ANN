@@ -63,6 +63,9 @@ class PredictionInput(BaseModel):
     bhk: int
     usage_change_percent: float = 0   # ⭐ NEXT MONTH FACTOR
 
+class ChatInput(BaseModel):
+    message: str
+
 # ==============================
 # FEATURE CREATION
 # ==============================
@@ -221,6 +224,69 @@ def predict(data: PredictionInput):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# =====================================
+# CHAT API
+# =====================================
+@app.post("/chat")
+async def chat(data: ChatInput):
+    if not data.message or not data.message.strip():
+        raise HTTPException(status_code=400, detail="message is required")
+
+    api_key = os.getenv("AZURE_OPENAI_API_KEY")
+    endpoint = _normalize_azure_endpoint(os.getenv("AZURE_OPENAI_ENDPOINT"))
+    deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT")
+    api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-12-01-preview")
+
+    if not api_key or not endpoint or not deployment:
+        raise HTTPException(status_code=500, detail="Missing Azure OpenAI env config")
+
+    url = f"{endpoint}/openai/deployments/{deployment}/chat/completions?api-version={api_version}"
+    headers = {"Content-Type": "application/json", "api-key": api_key}
+    payload = {
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "Hello! Ready to save energy? Let me know your needs—home, office, appliances, "
+                    "or anything else—and I’ll share practical tips and efficient device suggestions.\n\n"
+                    "Style rules:\n"
+                    "- Be friendly and simple.\n"
+                    "- Keep responses short (4-6 lines).\n"
+                    "- Give actionable tips with estimated savings when possible.\n"
+                    "- Suggest efficient alternatives (LED, BLDC fan, inverter AC, 5-star appliances).\n"
+                    "- Use light emojis for readability."
+                )
+            },
+            {"role": "user", "content": data.message}
+        ],
+        "temperature": 0.6,
+        "max_tokens": 180
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            r = await client.post(url, headers=headers, json=payload)
+
+        if r.status_code != 200:
+            # return Azure error to help debug
+            raise HTTPException(status_code=502, detail=f"Azure error {r.status_code}: {r.text[:500]}")
+
+        body = r.json()
+        reply = body["choices"][0]["message"]["content"]
+        return {"reply": reply}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Chat failure: {str(e)}")
+
+def _normalize_azure_endpoint(endpoint: str) -> str:
+    ep = (endpoint or "").strip().rstrip("/")
+    # If user put cognitiveservices endpoint, convert to OpenAI endpoint format
+    if ".cognitiveservices.azure.com" in ep and ".openai.azure.com" not in ep:
+        ep = ep.replace(".cognitiveservices.azure.com", ".openai.azure.com")
+    return ep
 
 # ==============================
 # RUN SERVER
